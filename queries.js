@@ -15,7 +15,7 @@ function getAllUsers(req, res, next) {
 }
 
 function getUser(req, res, next){
-    db.any(`SELECT *
+    db.one(`SELECT *
     FROM "Usuarios"
     WHERE user_id='${req.params.id}'`)
   .then(function (data) {
