@@ -7,7 +7,7 @@ var connectionString = `postgres://egxgxrzpcqldtt:298a535ec51c41c0eb1b6a7f820fe9
 var db = pgp(connectionString);
 
 function getAllUsers(req, res, next) {
-    db.any('SELECT * FROM Usuarios ORDER BY nombre ASC').then(function(data){
+    db.any('SELECT * FROM "Usuarios" ORDER BY nombre ASC').then(function(data){
         res.status(200).json(data);
     }).catch(function (err){
         return next(err);
@@ -16,7 +16,7 @@ function getAllUsers(req, res, next) {
 
 function getUser(req, res, next){
     db.any(`SELECT *
-    FROM usuarios
+    FROM "Usuarios"
     WHERE user_id='${req.params.id}'`)
   .then(function (data) {
     res.status(200).json(data);
@@ -28,7 +28,7 @@ function getUser(req, res, next){
 
 function createUser(req, res, next) {
     console.log(req);
-    db.none(`INSERT INTO Usuarios (user_id, nombre, correo, fecha_nacimiento) 
+    db.none(`INSERT INTO "Usuarios" (user_id, nombre, correo, fecha_nacimiento) 
     VALUES (${user_id}, ${nombre}, ${correo}, ${fecha_nacimiento})`, req.body).
     then(function(){
         res.status(200)
