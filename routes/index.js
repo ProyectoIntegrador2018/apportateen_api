@@ -8,6 +8,7 @@ router.get('/', function(req, res, next) {
 
 router.get('/api/users', db.getAllUsers);
 router.get('/api/users/:id', db.getUser);
+router.post('/api/users', db.createUser);
 
 
 module.exports = router;

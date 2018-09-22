@@ -26,8 +26,25 @@ function getUser(req, res, next){
   });
 }
 
+function createUser(req, res, next) {
+    console.log(req);
+    db.none(`INSERT INTO Usuarios (user_id, nombre, correo, fecha_nacimiento) 
+    VALUES (${user_id}, ${nombre}, ${correo}, ${fecha_nacimiento})`, req.body).
+    then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha creado el usuario.'
+        });
+    })
+    .catch(function(err){
+        return next(err);
+    })
+}
+
 module.exports = {
     getAllUsers: getAllUsers,
-    getUser: getUser
+    getUser: getUser,
+    createUser: createUser
 }
 
