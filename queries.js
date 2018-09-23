@@ -27,10 +27,11 @@ function getUser(req, res, next){
 }
 
 function createUser(req, res, next) {
-    console.log(req);
-    db.none(`INSERT INTO "Usuarios" (user_id, nombre, correo, fecha_nacimiento) 
-    VALUES (${user_id}, ${nombre}, ${correo}, ${fecha_nacimiento})`, req.body).
-    then(function(){
+    console.log(req)
+    db.none(`INSERT INTO "Usuarios"(user_id, nombre, correo, fecha_nacimiento) 
+    VALUES ('${req.body.user_id}', '${req.body.nombre}', '${req.body.correo}', 
+    TO_DATE('${req.body.fecha_nacimiento}', 'DD-MM-YYYY'))`)
+    .then(function(){
         res.status(200)
         .json({
             status: 'success',
@@ -38,6 +39,7 @@ function createUser(req, res, next) {
         });
     })
     .catch(function(err){
+        console.log(err.message)
         return next(err);
     })
 }
