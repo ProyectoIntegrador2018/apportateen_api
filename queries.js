@@ -88,11 +88,34 @@ function getGuardianByChildId(req, res, next){
   });
 }
 
+function createGuardian(req, res, next){
+    console.log(req.body);
+    db.none(`INSERT INTO "Tutores"(nombre, correo, telefono, asignacion) 
+    VALUES ('${req.body.nombre}', '${req.body.correo}', '${req.body.telefono}', '${req.body.asignacion}')`)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha creado el tutor.'
+        });
+    })
+    .catch(function(err){
+        res.status(500)
+        .json({
+            status: 'error',
+            message: 'Ha sucedido un error.'
+        })
+        return next(err);
+    })
+}
+
 module.exports = {
     getAllUsers: getAllUsers,
     getUser: getUser,
     createUser: createUser,
     getAllSponsors: getAllSponsors,
-    createSponsor: createSponsor
+    createSponsor: createSponsor,
+    getGuardianByChildId: getGuardianByChildId,
+    createGuardian: createGuardian
 }
 
