@@ -27,7 +27,6 @@ function getUser(req, res, next){
 }
 
 function createUser(req, res, next) {
-    console.log(req)
     db.none(`INSERT INTO "Usuarios"(user_id, nombre, correo, fecha_nacimiento) 
     VALUES ('${req.body.user_id}', '${req.body.nombre}', '${req.body.correo}', 
     TO_DATE('${req.body.fecha_nacimiento}', 'DD-MM-YYYY'))`)
@@ -39,7 +38,40 @@ function createUser(req, res, next) {
         });
     })
     .catch(function(err){
-        console.log(err.message)
+        res.status(500)
+        .json({
+            status: 'error',
+            message: 'Ha sucedido un error.'
+        })
+        return next(err);
+    })
+}
+
+function getAllSponsors(req, res, next) {
+    db.any('SELECT * FROM "Patrocinadores"').then(function(data){
+        res.status(200).json(data);
+    }).catch(function (err){
+        return next(err);
+    });
+}
+
+function createSponsor(req, res, next){
+    console.log(req.body);
+    db.none(`INSERT INTO "Patrocinadores"(nombre, correo) 
+    VALUES ('${req.body.nombre}', '${req.body.correo}')`)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha creado el patrocinador.'
+        });
+    })
+    .catch(function(err){
+        res.status(500)
+        .json({
+            status: 'error',
+            message: 'Ha sucedido un error.'
+        })
         return next(err);
     })
 }
@@ -47,6 +79,8 @@ function createUser(req, res, next) {
 module.exports = {
     getAllUsers: getAllUsers,
     getUser: getUser,
-    createUser: createUser
+    createUser: createUser,
+    getAllSponsors: getAllSponsors,
+    createSponsor: createSponsor
 }
 

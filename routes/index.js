@@ -9,6 +9,7 @@ router.get('/', function(req, res, next) {
 router.get('/api/users', db.getAllUsers);
 router.get('/api/users/:id', db.getUser);
 router.post('/api/users', db.createUser);
-
+router.get('/api/sponsors', db.getAllSponsors);
+router.post('/api/sponsors', db.createSponsor);
 
 module.exports = router;
