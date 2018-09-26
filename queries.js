@@ -27,8 +27,8 @@ function getUser(req, res, next){
 }
 
 function createUser(req, res, next) {
-    db.none(`INSERT INTO "Usuarios"(user_id, nombre, correo, fecha_nacimiento) 
-    VALUES ('${req.body.user_id}', '${req.body.nombre}', '${req.body.correo}', 
+    db.none(`INSERT INTO "Usuarios"(user_id, nombre, apellido, correo, fecha_nacimiento) 
+    VALUES ('${req.body.user_id}', '${req.body.nombre}',  '${req.body.apellido}', '${req.body.correo}', 
     TO_DATE('${req.body.fecha_nacimiento}', 'DD-MM-YYYY'))`)
     .then(function(){
         res.status(200)
