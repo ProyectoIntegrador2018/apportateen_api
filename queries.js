@@ -27,8 +27,8 @@ function getUser(req, res, next){
 }
 
 function createUser(req, res, next) {
-    db.none(`INSERT INTO "Usuarios"(user_id, nombre, apellido, correo, fecha_nacimiento) 
-    VALUES ('${req.body.user_id}', '${req.body.nombre}',  '${req.body.apellido}', '${req.body.correo}', 
+    db.none(`INSERT INTO "Usuarios"(id, nombre, apellido, correo, fecha_nacimiento) 
+    VALUES ('${req.body.id}', '${req.body.nombre}',  '${req.body.apellido}', '${req.body.correo}', 
     TO_DATE('${req.body.fecha_nacimiento}', 'DD-MM-YYYY'))`)
     .then(function(){
         res.status(200)
@@ -109,6 +109,84 @@ function createGuardian(req, res, next){
     })
 }
 
+
+function getSedes(req, res, next) {
+    db.multi('SELECT * FROM "Sedes" ORDER BY nombre ASC; SELECT * FROM "Talleres";')
+    .then(data => {
+        data[0].forEach(element => {
+            var talleres = [];
+            data[1].forEach(el => {
+                if (element.id === el.sede)
+                    talleres.push(el);
+            });
+            element['talleres'] = talleres;
+            talleres = [];
+        });
+        res.status(200).json(data[0]);
+    })
+    .catch(function (err){
+        return next(err);
+    })
+}
+
+function createSede(req, res, next) {
+    db.none(`INSERT INTO "Sedes"(nombre, direccion) VALUES ('${req.body.nombre}', '${req.body.direccion}')`)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha creado la sede.'
+        });
+    })
+    .catch(function(err){
+        console.log(err.message);
+        res.status(500)
+        .json({
+            status: 'error',
+            message: 'Ha sucedido un error.'
+        })
+        return next(err);
+    });
+}
+
+function updateSede(req, res, next) {
+    db.none(`UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}' WHERE id=${req.params.id}`)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha modificado la sede.'
+        });
+    })
+    .catch(function(err){
+        res.status(500)
+        .json({
+            status: 'error',
+            message: 'Ha sucedido un error.'
+        })
+        return next(err);
+    })
+}
+
+
+function removeSede(req, res, next) {
+    var sedeId = parseInt(req.params.id);
+    db.result(`DELETE FROM "Sedes" WHERE id=${sedeId}`)
+    .then(function(){
+        res.status(200)
+        .json({
+          status: 'success',
+          message: 'Se eliminó la sede.'
+        });
+    })
+    .catch(function(err){
+        return next(err);
+    })
+}
+
+
+
+
 module.exports = {
     getAllUsers: getAllUsers,
     getUser: getUser,
@@ -116,6 +194,10 @@ module.exports = {
     getAllSponsors: getAllSponsors,
     createSponsor: createSponsor,
     getGuardianByChildId: getGuardianByChildId,
-    createGuardian: createGuardian
+    createGuardian: createGuardian,
+    getSedes: getSedes,
+    createSede: createSede,
+    updateSede: updateSede,
+    removeSede: removeSede
 }
 
