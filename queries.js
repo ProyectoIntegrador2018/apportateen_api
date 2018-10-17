@@ -184,6 +184,104 @@ function removeSede(req, res, next) {
     })
 }
 
+function getTalleres(req, res, next) {
+    db.multi('SELECT * FROM "Talleres"; SELECT * FROM "Sedes"')
+    .then(data => {
+        var result = data[0].map(function(x){
+            data[1].forEach(e => {
+                if (x.sede === e.id){
+                    x['sede'] = e.nombre;
+                }
+            });
+            return x;
+        })
+        res.status(200).json(result);
+    })
+    .catch(function (err){
+        return next(err);
+    })
+}
+
+function getAvisos(req, res, next) {
+    db.multi('SELECT * FROM "Avisos"; SELECT * FROM "Talleres"')
+    .then(data => {
+        var result = data[0].map(function(x){
+            if (x.taller == 0){
+                x['taller'] = "Aviso público general"
+                x['idtaller'] = 0;
+            } else {
+                data[1].forEach(e => {
+                    if (e.id == x.taller){
+                        x['idtaller'] = e.id;
+                        x['taller'] = e.nombre;
+                    }
+                });
+            }
+            return x;
+        })
+        res.status(200).json(result);
+    })
+    .catch(function (err){
+        return next(err);
+    })
+}
+
+function createAviso(req, res, next) {
+    db.none(`INSERT INTO "Avisos"(titulo, mensaje, taller) 
+    VALUES ('${req.body.titulo}', '${req.body.mensaje}',  ${req.body.idtaller})`)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha creado el aviso.'
+        });
+    })
+    .catch(function(err){
+        res.status(500)
+        .json({
+            status: 'error',
+            message: 'Ha sucedido un error.'
+        })
+        return next(err);
+    })
+}
+
+function updateAviso(req, res, next) {
+    db.none(`UPDATE "Avisos" SET titulo='${req.body.titulo}', mensaje='${req.body.mensaje}', taller=${req.body.idtaller} WHERE id=${req.params.id}`)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha modificado el aviso.'
+        });
+    })
+    .catch(function(err){
+        res.status(500)
+        .json({
+            status: 'error',
+            message: 'Ha sucedido un error.'
+        })
+        return next(err);
+    })
+}
+
+function removeAviso(req, res, next) {
+    var avisoId = parseInt(req.params.id);
+    db.result(`DELETE FROM "Avisos" WHERE id=${avisoId}`)
+    .then(function(){
+        res.status(200)
+        .json({
+          status: 'success',
+          message: 'Se eliminó el aviso.'
+        });
+    })
+    .catch(function(err){
+        return next(err);
+    })
+}
+
+
+
 
 
 
@@ -198,6 +296,11 @@ module.exports = {
     getSedes: getSedes,
     createSede: createSede,
     updateSede: updateSede,
-    removeSede: removeSede
+    removeSede: removeSede,
+    getTalleres: getTalleres,
+    getAvisos: getAvisos,
+    createAviso: createAviso,
+    updateAviso: updateAviso,
+    removeAviso: removeAviso
 }
 

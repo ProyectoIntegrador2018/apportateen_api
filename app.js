@@ -11,6 +11,8 @@ var usersRouter = require('./routes/users');
 var sponsorsRouter = require('./routes/sponsors');
 var sedesRouter = require('./routes/sedes');
 var guardiansRouter = require('./routes/guardians');
+var avisosRouter = require('./routes/avisos');
+var talleresRouter = require('./routes/talleres');
 
 var app = express();
 
@@ -35,6 +37,8 @@ app.use('/users', usersRouter);
 app.use('/sponsors', sponsorsRouter);
 app.use('/sedes', sedesRouter);
 app.use('/guardians', guardiansRouter);
+app.use('/avisos', avisosRouter);
+app.use('/talleres', talleresRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
