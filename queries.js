@@ -5,6 +5,7 @@ const options = {
 var pgp = require('pg-promise')(options);
 var connectionString = `postgres://egxgxrzpcqldtt:298a535ec51c41c0eb1b6a7f820fe9801cc1507dc5d621197c955e759abf9fd4@ec2-54-83-27-165.compute-1.amazonaws.com:5432/d7u6tefdf2r940?ssl=true`;
 var db = pgp(connectionString);
+var admin = require('firebase-admin');
 
 function getAllUsers(req, res, next) {
     db.any('SELECT * FROM "Usuarios" ORDER BY nombre ASC').then(function(data){
@@ -15,14 +16,13 @@ function getAllUsers(req, res, next) {
 }
 
 function getUser(req, res, next){
-    db.one(`SELECT *
-    FROM "Usuarios"
-    WHERE user_id='${req.params.id}'`)
-  .then(function (data) {
-    res.status(200).json(data);
+    db.multi(`SELECT * FROM "Usuarios" WHERE id='${req.params.id}'; SELECT * FROM "Admins" WHERE uid='${req.params.id}'`)
+  .then(data => {
+        data[0][0]['isAdmin'] = data[1].length > 0 ? true : false;        
+    res.status(200).json(data[0][0]);
   })
   .catch(function (err) {
-  return next(err);
+    return next(err);
   });
 }
 
@@ -38,12 +38,19 @@ function createUser(req, res, next) {
         });
     })
     .catch(function(err){
-        res.status(500)
-        .json({
-            status: 'error',
-            message: 'Ha sucedido un error.'
+        admin.auth().deleteUser(req.body.id)
+        .then(function(){
+            res.status(500).send('¡Ups! Algo ha salido mal. Intenta volver a registrarte.');
+            return next(err);
         })
-        return next(err);
+        .catch(function(error){
+            res.status(500)
+            .json({ 
+                status: 'error',
+                message: 'Favor de contactar al administrador del sistema para registrarse.'
+            })
+            return next(error);
+        })
     })
 }
 
