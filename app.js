@@ -13,6 +13,7 @@ var sedesRouter = require('./routes/sedes');
 var guardiansRouter = require('./routes/guardians');
 var avisosRouter = require('./routes/avisos');
 var talleresRouter = require('./routes/talleres');
+var categoriasRouter = require('./routes/categorias');
 
 var app = express();
 
@@ -39,6 +40,7 @@ app.use('/sedes', sedesRouter);
 app.use('/guardians', guardiansRouter);
 app.use('/avisos', avisosRouter);
 app.use('/talleres', talleresRouter);
+app.use('/categorias', categoriasRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
