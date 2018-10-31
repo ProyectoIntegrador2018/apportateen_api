@@ -4,10 +4,8 @@ var db = require('../queries');
 
 
 router.get('/', db.getTalleres);
-/*router.post('/', db.createSede);
-router.put('/:id', db.updateSede);
-router.delete('/:id', db.removeSede);*/
-
-
+router.post('/', db.createTaller);
+router.put('/:id', db.updateTaller);
+router.delete('/:id', db.removeTaller);
 
 module.exports = router;
