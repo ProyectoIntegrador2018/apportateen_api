@@ -44,11 +44,7 @@ function createUser(req, res, next) {
             return next(err);
         })
         .catch(function(error){
-            res.status(500)
-            .json({ 
-                status: 'error',
-                message: 'Favor de contactar al administrador del sistema para registrarse.'
-            })
+            res.status(500).send('Favor de contactar al administrador del sistema para registrarse.');
             return next(error);
         })
     })
@@ -74,11 +70,7 @@ function createSponsor(req, res, next){
         });
     })
     .catch(function(err){
-        res.status(500)
-        .json({
-            status: 'error',
-            message: 'Ha sucedido un error.'
-        })
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
         return next(err);
     })
 }
@@ -107,11 +99,7 @@ function createGuardian(req, res, next){
         });
     })
     .catch(function(err){
-        res.status(500)
-        .json({
-            status: 'error',
-            message: 'Ha sucedido un error.'
-        })
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
         return next(err);
     })
 }
@@ -146,12 +134,7 @@ function createSede(req, res, next) {
         });
     })
     .catch(function(err){
-        console.log(err.message);
-        res.status(500)
-        .json({
-            status: 'error',
-            message: 'Ha sucedido un error.'
-        })
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
         return next(err);
     });
 }
@@ -166,11 +149,7 @@ function updateSede(req, res, next) {
         });
     })
     .catch(function(err){
-        res.status(500)
-        .json({
-            status: 'error',
-            message: 'Ha sucedido un error.'
-        })
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
         return next(err);
     })
 }
@@ -187,27 +166,77 @@ function removeSede(req, res, next) {
         });
     })
     .catch(function(err){
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
         return next(err);
     })
 }
 
 function getTalleres(req, res, next) {
-    db.multi('SELECT * FROM "Talleres"; SELECT * FROM "Sedes"')
+    db.multi('SELECT * FROM "Talleres"; SELECT * FROM "Sedes"; Select * From "Categorias"')
     .then(data => {
-        var result = data[0].map(function(x){
+        data[0].map(function(x){
             data[1].forEach(e => {
                 if (x.sede === e.id){
-                    x['sede'] = e.nombre;
+                    x['sedeDesc'] = e.nombre;
                 }
             });
             return x;
         })
-        res.status(200).json(result);
+        res.status(200).json(data);
     })
     .catch(function (err){
         return next(err);
     })
 }
+
+function createTaller(req, res, next) {
+    db.none(`INSERT INTO "Talleres"(nombre, descripcion, sede, categoria) 
+    VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, ${req.body.categoria})`)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha creado el taller.'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    });
+}
+
+function updateTaller(req, res, next) {
+    db.none(`UPDATE "Talleres" SET nombre='${req.body.nombre}', descripcion='${req.body.descripcion}', 
+    sede=${req.body.sede}, categoria=${req.body.categoria} WHERE id=${req.params.id}`)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha modificado el taller.'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    })
+}
+
+function removeTaller(req, res, next) {
+    var sedeId = parseInt(req.params.id);
+    db.result(`DELETE FROM "Talleres" WHERE id=${sedeId}`)
+    .then(function(){
+        res.status(200)
+        .json({
+          status: 'success',
+          message: 'Se eliminó el taller.'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    })
+}
+
 
 function getAvisos(req, res, next) {
     db.multi('SELECT * FROM "Avisos"; SELECT * FROM "Talleres"')
@@ -244,11 +273,7 @@ function createAviso(req, res, next) {
         });
     })
     .catch(function(err){
-        res.status(500)
-        .json({
-            status: 'error',
-            message: 'Ha sucedido un error.'
-        })
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
         return next(err);
     })
 }
@@ -263,11 +288,7 @@ function updateAviso(req, res, next) {
         });
     })
     .catch(function(err){
-        res.status(500)
-        .json({
-            status: 'error',
-            message: 'Ha sucedido un error.'
-        })
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
         return next(err);
     })
 }
@@ -280,6 +301,73 @@ function removeAviso(req, res, next) {
         .json({
           status: 'success',
           message: 'Se eliminó el aviso.'
+        });
+    })
+    .catch(function(err){
+        return next(err);
+    })
+}
+
+
+function getCategorias(req, res, next) {
+    db.multi('SELECT * FROM "Categorias"; SELECT * FROM "Talleres"')
+    .then(data => {
+        var result = data[0].map(function(x){
+            var talleres = [];
+            data[1].forEach(e => {
+                if (x.id === e.categoria){
+                    talleres.push(e.nombre);
+                }
+            });
+            x['talleres'] = talleres;
+            return x;
+        })
+        res.status(200).json(result);
+    })
+    .catch(function (err){
+        return next(err);
+    })
+}
+
+function createCategoria(req, res, next) {
+    db.none(`INSERT INTO "Categorias"(nombre, minima, maxima) 
+    VALUES ('${req.body.nombre}', ${req.body.minima},  ${req.body.maxima})`)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha creado la categoría.'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    })
+}
+
+function updateCategoria(req, res, next) {
+    db.none(`UPDATE "Categorias" SET nombre='${req.body.nombre}', minima=${req.body.minima}, maxima=${req.body.maxima} WHERE id=${req.params.id}`)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha modificado la categoría.'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error. Intente no utilizar caracteres especiales y vuelva a intentar.');
+        return next(err);
+    })
+}
+
+function removeCategoria(req, res, next) {
+    var catId = parseInt(req.params.id);
+    db.result(`DELETE FROM "Categorias" WHERE id=${catId}`)
+    .then(function(){
+        res.status(200)
+        .json({
+          status: 'success',
+          message: 'Se eliminó la categoría.'
         });
     })
     .catch(function(err){
@@ -305,9 +393,16 @@ module.exports = {
     updateSede: updateSede,
     removeSede: removeSede,
     getTalleres: getTalleres,
+    createTaller: createTaller,
+    updateTaller: updateTaller,
+    removeTaller: removeTaller,
     getAvisos: getAvisos,
     createAviso: createAviso,
     updateAviso: updateAviso,
-    removeAviso: removeAviso
+    removeAviso: removeAviso,
+    getCategorias: getCategorias,
+    createCategoria: createCategoria,
+    updateCategoria: updateCategoria,
+    removeCategoria: removeCategoria
 }
 
