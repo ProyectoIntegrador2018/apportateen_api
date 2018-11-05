@@ -262,6 +262,31 @@ function getAvisos(req, res, next) {
     })
 }
 
+function getAvisosForUser(req, res, next) {
+    db.multi(`SELECT * FROM "Avisos" WHERE taller=${req.params.id} OR taller = 0; SELECT * FROM "Talleres"`)
+    .then(data => {
+        var result = data[0].map(function(x){
+            if (x.taller == 0){
+                x['taller'] = "Aviso público general"
+                x['idtaller'] = 0;
+            } else {
+                data[1].forEach(e => {
+                    if (e.id == x.taller){
+                        x['idtaller'] = e.id;
+                        x['taller'] = e.nombre;
+                    }
+                });
+            }
+            return x;
+        })
+        res.status(200).json(result);
+    })
+    .catch(function (err){
+        console.log('HELLO')
+        return next(err);
+    })
+}
+
 function createAviso(req, res, next) {
     db.none(`INSERT INTO "Avisos"(titulo, mensaje, taller) 
     VALUES ('${req.body.titulo}', '${req.body.mensaje}',  ${req.body.idtaller})`)
@@ -397,6 +422,7 @@ module.exports = {
     updateTaller: updateTaller,
     removeTaller: removeTaller,
     getAvisos: getAvisos,
+    getAvisosForUser: getAvisosForUser,
     createAviso: createAviso,
     updateAviso: updateAviso,
     removeAviso: removeAviso,
