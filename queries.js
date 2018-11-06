@@ -16,7 +16,8 @@ function getAllUsers(req, res, next) {
 }
 
 function getUser(req, res, next){
-    db.multi(`SELECT * FROM "Usuarios" WHERE id='${req.params.id}'; SELECT * FROM "Admins" WHERE uid='${req.params.id}'`)
+    db.multi(`SELECT US.*, CA.nombre as categoria FROM "Usuarios" US LEFT JOIN "Categorias" CA ON ca.id = US.idcategoria WHERE US.id='${req.params.id}'; 
+    SELECT * FROM "Admins" WHERE uid='${req.params.id}';`)
   .then(data => {
         data[0][0]['isAdmin'] = data[1].length > 0 ? true : false;        
     res.status(200).json(data[0][0]);
@@ -27,9 +28,9 @@ function getUser(req, res, next){
 }
 
 function createUser(req, res, next) {
-    db.none(`INSERT INTO "Usuarios"(id, nombre, apellido, correo, fecha_nacimiento) 
-    VALUES ('${req.body.id}', '${req.body.nombre}',  '${req.body.apellido}', '${req.body.correo}', 
-    TO_DATE('${req.body.fecha_nacimiento}', 'DD-MM-YYYY'))`)
+    db.none(`INSERT INTO "Usuarios"(id, nombre, apellido, correo, fecha_nacimiento, idcategoria) 
+    SELECT '${req.body.id}', '${req.body.nombre}',  '${req.body.apellido}', '${req.body.correo}', 
+    TO_DATE('${req.body.fecha_nacimiento}', 'DD-MM-YYYY'), assign_category('${req.body.fecha_nacimiento}')`)
     .then(function(){
         res.status(200)
         .json({
@@ -48,6 +49,20 @@ function createUser(req, res, next) {
             return next(error);
         })
     })
+}
+
+function updateUser(req, res, next){
+    db.none(`UPDATE "Usuarios" SET idtaller=${req.body.idtaller} WHERE id='${req.params.id}'`).then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha modificado satisfactoriamente tu inscripción.'
+        })
+    }).catch(function(err){
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    })
+
 }
 
 function getAllSponsors(req, res, next) {
@@ -409,6 +424,7 @@ module.exports = {
     getAllUsers: getAllUsers,
     getUser: getUser,
     createUser: createUser,
+    updateUser: updateUser,
     getAllSponsors: getAllSponsors,
     createSponsor: createSponsor,
     getGuardianByChildId: getGuardianByChildId,
