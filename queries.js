@@ -415,6 +415,28 @@ function removeCategoria(req, res, next) {
     })
 }
 
+function getEstatusConvocatorias(req, res, next) {
+    db.one('SELECT estatus FROM "Convocatorias"').then(function(data){
+        res.status(200).json(data);
+    }).catch(function (err){
+        return next(err);
+    });
+}
+
+function updateEstatusConvocatorias(req, res, next) {
+    db.none(`UPDATE "Convocatorias" set estatus=${req.body.estatus}`)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha modificado el estado de las convocatorias.'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    })
+}
 
 
 
@@ -445,6 +467,8 @@ module.exports = {
     getCategorias: getCategorias,
     createCategoria: createCategoria,
     updateCategoria: updateCategoria,
-    removeCategoria: removeCategoria
+    removeCategoria: removeCategoria,
+    getEstatusConvocatorias: getEstatusConvocatorias,
+    updateEstatusConvocatorias: updateEstatusConvocatorias
 }
 
