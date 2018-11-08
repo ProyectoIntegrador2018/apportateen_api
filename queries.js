@@ -204,6 +204,20 @@ function getTalleres(req, res, next) {
     })
 }
 
+function getCorreosByTallerId(req, res, next) {
+    let query = 'SELECT correo FROM "Usuarios" where id NOT IN (SELECT uid FROM "Admins")';
+    let taller = parseInt(req.params.id);
+    if (taller > 0){
+       query = `SELECT correo FROM "Usuarios"  where idtaller=${taller}`;
+    }
+    db.any(query).then(function(data){
+        res.status(200).json(data.map(x => x.correo));
+    }).catch(function (err){
+        res.status(500).send('Ha sucedido un error obteniendo la lista de correos correspondientes. Vuelva a intentar.');
+        return next(err);
+    });
+}
+
 function createTaller(req, res, next) {
     db.none(`INSERT INTO "Talleres"(nombre, descripcion, sede, categoria) 
     VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, ${req.body.categoria})`)
@@ -455,6 +469,7 @@ module.exports = {
     createSede: createSede,
     updateSede: updateSede,
     removeSede: removeSede,
+    getCorreosByTallerId:getCorreosByTallerId,
     getTalleres: getTalleres,
     createTaller: createTaller,
     updateTaller: updateTaller,

@@ -4,6 +4,7 @@ var db = require('../queries');
 
 
 router.get('/', db.getTalleres);
+router.get('/:id', db.getCorreosByTallerId);
 router.post('/', db.createTaller);
 router.put('/:id', db.updateTaller);
 router.delete('/:id', db.removeTaller);
