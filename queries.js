@@ -81,7 +81,7 @@ function createSponsor(req, res, next){
         res.status(200)
         .json({
             status: 'success',
-            message: 'Se ha creado el patrocinador.'
+            message: '¡Muchas gracias! Lo contactaremos lo más pronto posible.'
         });
     })
     .catch(function(err){
