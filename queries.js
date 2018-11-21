@@ -28,9 +28,14 @@ function getUser(req, res, next){
 }
 
 function createUser(req, res, next) {
-    db.none(`INSERT INTO "Usuarios"(id, nombre, apellido, correo, fecha_nacimiento, idcategoria) 
-    SELECT '${req.body.id}', '${req.body.nombre}',  '${req.body.apellido}', '${req.body.correo}', 
-    TO_DATE('${req.body.fecha_nacimiento}', 'DD-MM-YYYY'), assign_category('${req.body.fecha_nacimiento}')`)
+    db.none(`INSERT INTO "Usuarios"(id, nombre, apellido, correo, fecha_nacimiento, idcategoria, sexo, tutor_nombre,
+        tutor_correo, tutor_telefono, curp, telefono, escuela, escuela_tipo, escuela_grado, experiencia,
+        ha_participado, beca, detalle_exp, referencia) 
+    SELECT '${req.body.id}', '${req.body.nombre}', '${req.body.apellido}', '${req.body.correo}', 
+    TO_DATE('${req.body.fecha_nacimiento}', 'DD-MM-YYYY'), assign_category('${req.body.fecha_nacimiento}'), '${req.body.sexo}',
+    '${req.body.tutor_nombre}', '${req.body.tutor_correo}', '${req.body.tutor_telefono}', '${req.body.curp}',
+    '${req.body.telefono}', '${req.body.nombreEscuela}', '${req.body.tipoEscuela}', '${req.body.gradoEscuela}',
+    '${req.body.experiencia}', '${req.body.exAlumno}', '${req.body.beca}', '${req.body.expDetalle}', '${req.body.referencia}'`)
     .then(function(){
         res.status(200)
         .json({
