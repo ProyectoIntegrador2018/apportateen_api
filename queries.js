@@ -142,8 +142,21 @@ function createGuardian(req, res, next){
 
 
 function getSedes(req, res, next) {
-    db.multi('SELECT * FROM "Sedes" ORDER BY nombre ASC; SELECT * FROM "Talleres";')
+    db.multi(`SELECT * FROM "Sedes" ORDER BY nombre ASC; SELECT * FROM "Talleres"; 
+    SELECT COUNT(*) as inscritos, idtaller FROM "Usuarios" GROUP BY idtaller;`)
     .then(data => {
+        data[1].forEach(el => {
+            var registro = true;
+            data[2].forEach(x => {
+                if (x.idtaller == el.id){
+                    el['inscritos'] = x.inscritos;
+                    registro = false;
+                }
+            })
+            if (registro){
+                el['inscritos'] = 0;
+            }
+        });
         data[0].forEach(element => {
             var talleres = [];
             data[1].forEach(el => {
