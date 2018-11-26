@@ -257,7 +257,7 @@ function createTaller(req, res, next) {
 
 function updateTaller(req, res, next) {
     db.none(`UPDATE "Talleres" SET nombre='${req.body.nombre}', descripcion='${req.body.descripcion}', 
-    sede=${req.body.sede}, categoria=${req.body.categoria} WHERE id=${req.params.id}`)
+    sede=${req.body.sede}, categoria=${req.body.categoria}, cupo= ${req.body.cupo} WHERE id=${req.params.id}`)
     .then(function(){
         res.status(200)
         .json({
