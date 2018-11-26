@@ -95,6 +95,22 @@ function createSponsor(req, res, next){
     })
 }
 
+function removeSponsor(req, res, next) {
+    var sedeId = parseInt(req.params.id);
+    db.result(`DELETE FROM "Patrocinadores" WHERE id=${sedeId}`)
+    .then(function(){
+        res.status(200)
+        .json({
+          status: 'success',
+          message: 'Se eliminó el patrocinador.'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    })
+}
+
 function getGuardianByChildId(req, res, next){
     db.one(`SELECT *
     FROM "Tutores"
@@ -224,8 +240,8 @@ function getCorreosByTallerId(req, res, next) {
 }
 
 function createTaller(req, res, next) {
-    db.none(`INSERT INTO "Talleres"(nombre, descripcion, sede, categoria) 
-    VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, ${req.body.categoria})`)
+    db.none(`INSERT INTO "Talleres"(nombre, descripcion, sede, categoria, cupo) 
+    VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, ${req.body.categoria}), ${req.body.cupo}`)
     .then(function(){
         res.status(200)
         .json({
@@ -468,6 +484,7 @@ module.exports = {
     updateUser: updateUser,
     getAllSponsors: getAllSponsors,
     createSponsor: createSponsor,
+    removeSponsor:removeSponsor,
     getGuardianByChildId: getGuardianByChildId,
     createGuardian: createGuardian,
     getSedes: getSedes,
