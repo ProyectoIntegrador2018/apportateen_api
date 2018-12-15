@@ -9,6 +9,10 @@ var admin = require('firebase-admin');
 
 function getAllUsers(req, res, next) {
     db.any('SELECT * FROM "Usuarios" ORDER BY nombre ASC').then(function(data){
+        data.map(x=> {
+            x.fecha_nacimiento = JSON.stringify(x.fecha_nacimiento).split('T')[0].replace(/"/g, "");
+            return x;
+        })
         res.status(200).json(data);
     }).catch(function (err){
         return next(err);
