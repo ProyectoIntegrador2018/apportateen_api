@@ -1,6 +1,8 @@
 
 # Deployment
 
+[![Maintainability](https://api.codeclimate.com/v1/badges/d4fe75c7c58386a27eb2/maintainability)](https://codeclimate.com/github/ProyectoIntegrador2018/apportateen_api/maintainability)
+
 ## API Deployment
 
 1. You need to be a user of [Apportateen API github repo](https://github.com/ProyectoIntegrador2018/apportateen_api). 
@@ -59,7 +61,7 @@ $ npm install
 
 3. Now launch the application
 
-``` bash
+​``` bash
 $ ng serve --open
 ```
 
