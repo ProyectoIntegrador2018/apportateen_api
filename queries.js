@@ -31,6 +31,16 @@ function getUser(req, res, next){
   });
 }
 
+function getUserByEmail() {
+    db.one(`SELECT * FROM "Usuarios WHERE correo='${req.params.correo}'`)
+    .then(function (data) {
+        res.status(200).json(data);
+    })
+    .catch(function (err) {
+        return next(err);
+    });
+}
+
 function createUser(req, res, next) {
     db.none(`INSERT INTO "Usuarios"(id, nombre, apellido, correo, fecha_nacimiento, idcategoria, sexo, tutor_nombre,
         tutor_correo, tutor_telefono, curp, telefono, escuela, escuela_tipo, escuela_grado, experiencia,
@@ -60,7 +70,7 @@ function createUser(req, res, next) {
     })
 }
 
-function updateUser(req, res, next){
+function updateUserTaller(req, res, next){
     db.none(`UPDATE "Usuarios" SET idtaller=${req.body.idtaller} WHERE id='${req.params.id}'`).then(function(){
         res.status(200)
         .json({
@@ -72,6 +82,43 @@ function updateUser(req, res, next){
         return next(err);
     })
 
+}
+
+function updateUserComplete(req, res, next) {
+    db.none(`UPDATE "Usuarios" SET nombre='${req.body.nombre}', apellido='${req.body.apellido}', fecha_nacimiento=TO_DATE('${req.body.fecha_nacimiento}', 'DD-MM-YYYY'), correo='${req.body.correo}', telefono='${req.body.telefono}', curp='${req.body.curp}', idtaller=${req.body.idtaller}, escuela='${req.body.escuela}', idcategoria=${req.body.idcategoria}, sexo='${req.body.sexo}', tutor_nombre='${req.body.tutor_nombre}', tutor_correo='${req.body.tutor_correo}', tutor_telefono='${req.body.tutor_telefono}', escuela_tipo='${req.body.escuela_tipo}', escuela_grado='${req.body.escuela_grado}', ha_participado='${req.body.ha_participado}', beca='${req.body.beca}', detalle_exp='${req.body.detalle_exp}', referencia='${req.body.referencia}' WHERE id='${req.params.id}'`)
+    .then(function(){
+        res.status(200)
+        .json({
+            status : 'success',
+            message : 'Se ha modificado satisfactoriamente el usuario.'
+        });
+    }).catch(function(err){
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    })
+}
+
+function removeUser(req, res, next) {
+
+    admin.auth().deleteUser(req.params.id)
+        .then(function(){
+            db.none(`DELETE FROM "Usuarios" WHERE id='${req.params.id}'`)
+    .then(function() {
+        res.status(200)
+        .json({
+            status : 'success',
+            message: 'Se eliminó el usuario satisfactoriamente.'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    })
+        })
+        .catch(function(error){
+            res.status(500).send('Favor de contactar al administrador del sistema para registrarse.');
+            return next(error);
+        })
 }
 
 function getAllSponsors(req, res, next) {
@@ -497,8 +544,10 @@ function updateEstatusConvocatorias(req, res, next) {
 module.exports = {
     getAllUsers: getAllUsers,
     getUser: getUser,
+    getUserByEmail : getUserByEmail,
     createUser: createUser,
-    updateUser: updateUser,
+    updateUserTaller: updateUserTaller,
+    removeUser: removeUser,
     getAllSponsors: getAllSponsors,
     createSponsor: createSponsor,
     removeSponsor:removeSponsor,
@@ -523,6 +572,7 @@ module.exports = {
     updateCategoria: updateCategoria,
     removeCategoria: removeCategoria,
     getEstatusConvocatorias: getEstatusConvocatorias,
-    updateEstatusConvocatorias: updateEstatusConvocatorias
+    updateEstatusConvocatorias: updateEstatusConvocatorias,
+    updateUserComplete : updateUserComplete
 }
 
