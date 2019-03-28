@@ -7,8 +7,67 @@ var connectionString = `postgres://egxgxrzpcqldtt:298a535ec51c41c0eb1b6a7f820fe9
 var db = pgp(connectionString);
 var admin = require('firebase-admin');
 
+//DB FUNCTION - CREATE Archivo IN DB
+function createArchivoAdmn(req, res, next) {
+    db.none(`INSERT INTO "Archivos"(user_id, nombre, fecha_subida, url, archivo_path) VALUES ('${req.body.user_id}', '${req.body.nombre}', TO_DATE('${req.body.fecha_subida}','DD-MM-YYYY'), '${req.body.url}', '${req.body.archivo_path}')`)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Archivo Subido'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error. Vuelva a intentarlo.');
+        return next(err);
+    })
+}
+
+//DB FUNCTION - GET ALL ARCHIVOS FROM DATABASE
+function getArchivosAdmn(req, res, next) {
+    db.multi(`SELECT * FROM "Archivos"`).then(function(data){
+        res.status(200).json(data);
+    }).catch(function(err) {
+        return next(err);
+    })
+}
+//DB FUNCTION - GET ARCHIVOS FROM SPECIFIC USER
+function getArchivoUser(req, res, next) {
+    console.log(req.param.id);
+    db.multi(`SELECT * FROM "Archivos" WHERE user_id='${req.params.id}'`).then(function(data){
+        res.status(200).json(data);
+    }).catch(function(err) {
+        return next(err);
+    })
+}
+
+function getArchivoAdminByUsers(req, res, next) {
+    console.log(req.param.id);
+    db.multi(`SELECT * FROM "Archivos" WHERE user_id !='${req.params.id}'`).then(function(data){
+        res.status(200).json(data);
+    }).catch(function(err) {
+        return next(err);
+    })
+}
+
+//DB FUNCITON - DELETE SPECIFIC DOCUMENT
+function deleteArchivoAdmn(req, res, next){
+    db.none(`DELETE FROM "Archivos" WHERE archivo_path='${req.params.id}'`)
+    .then(function() {
+        res.status(200)
+        .json({
+            status : 'success',
+            message: 'Se eliminó el archivo satisfactoriamente.'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    })
+}
+
 function getAllUsers(req, res, next) {
-    db.any('SELECT * FROM "Usuarios" ORDER BY nombre ASC').then(function(data){
+    db.any(`SELECT * FROM "Usuarios" WHERE id != 'zlXAOjP1crTuc3SI2hgSfsh21e72' ORDER BY nombre ASC`).then(function(data){
         data.map(x=> {
             x.fecha_nacimiento = JSON.stringify(x.fecha_nacimiento).split('T')[0].replace(/"/g, "");
             return x;
@@ -44,12 +103,12 @@ function getUserByEmail() {
 function createUser(req, res, next) {
     db.none(`INSERT INTO "Usuarios"(id, nombre, apellido, correo, fecha_nacimiento, idcategoria, sexo, tutor_nombre,
         tutor_correo, tutor_telefono, curp, telefono, escuela, escuela_tipo, escuela_grado, experiencia,
-        ha_participado, beca, detalle_exp, referencia) 
+        ha_participado, beca, detalle_exp, referencia, id_axtuser) 
     SELECT '${req.body.id}', '${req.body.nombre}', '${req.body.apellido}', '${req.body.correo}', 
     TO_DATE('${req.body.fecha_nacimiento}', 'DD-MM-YYYY'), assign_category('${req.body.fecha_nacimiento}'), '${req.body.sexo}',
     '${req.body.tutor_nombre}', '${req.body.tutor_correo}', '${req.body.tutor_telefono}', '${req.body.curp}',
     '${req.body.telefono}', '${req.body.nombreEscuela}', '${req.body.tipoEscuela}', '${req.body.gradoEscuela}',
-    '${req.body.experiencia}', '${req.body.exAlumno}', '${req.body.beca}', '${req.body.expDetalle}', '${req.body.referencia}'`)
+    '${req.body.experiencia}', '${req.body.exAlumno}', '${req.body.beca}', '${req.body.expDetalle}', '${req.body.referencia}', '${req.body.id_axtuser}'`)
     .then(function(){
         res.status(200)
         .json({
@@ -71,7 +130,7 @@ function createUser(req, res, next) {
 }
 
 function updateUserTaller(req, res, next){
-    db.none(`UPDATE "Usuarios" SET idtaller=${req.body.idtaller} WHERE id='${req.params.id}'`).then(function(){
+    db.none(`UPDATE "Usuarios" SET idtaller=${req.body.idtaller}, id_axtuser='${req.body.id_axtuser}' WHERE id='${req.params.id}'`).then(function(){
         res.status(200)
         .json({
             status: 'success',
@@ -573,6 +632,11 @@ module.exports = {
     removeCategoria: removeCategoria,
     getEstatusConvocatorias: getEstatusConvocatorias,
     updateEstatusConvocatorias: updateEstatusConvocatorias,
-    updateUserComplete : updateUserComplete
+    updateUserComplete : updateUserComplete,
+    getArchivosAdmn : getArchivosAdmn,
+    createArchivoAdmn : createArchivoAdmn,
+    deleteArchivoAdmn : deleteArchivoAdmn,
+    getArchivoUser : getArchivoUser,
+    getArchivoAdminByUsers : getArchivoAdminByUsers
 }
 

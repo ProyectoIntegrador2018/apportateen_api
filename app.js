@@ -15,6 +15,7 @@ var avisosRouter = require('./routes/avisos');
 var talleresRouter = require('./routes/talleres');
 var categoriasRouter = require('./routes/categorias');
 var convocatoriasRouter = require('./routes/convocatorias');
+var archivosRouter = require('./routes/archivos');
 
 var app = express();
 
@@ -28,9 +29,11 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(function(req, res, next){
-  res.header("Access-Control-Allow-Origin", "https://apportateen.mx");
+  res.header("Access-Control-Allow-Origin", "http://localhost:4200");
   res.header("Access-Control-Allow-Methods", "GET, HEAD, POST, PUT, DELETE, CONNECT");
+  res.header("Content-Type", "application/msword");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  res.header("Access-Control-Allow-Credentials", true);
   next();
 })
 
@@ -43,6 +46,7 @@ app.use('/avisos', avisosRouter);
 app.use('/talleres', talleresRouter);
 app.use('/categorias', categoriasRouter);
 app.use('/convocatorias', convocatoriasRouter);
+app.use('/archivos', archivosRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
