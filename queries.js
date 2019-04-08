@@ -364,7 +364,7 @@ function getCorreosByTallerId(req, res, next) {
 
 function createTaller(req, res, next) {
     db.none(`INSERT INTO "Talleres"(nombre, descripcion, sede, categoria, cupo) 
-    VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, ${req.body.categoria}), ${req.body.cupo}`)
+    VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, ${req.body.categoria}, ${req.body.cupo})`)
     .then(function(){
         res.status(200)
         .json({
