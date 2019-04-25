@@ -90,6 +90,63 @@ function getUser(req, res, next){
   });
 }
 
+function getUsersUsuarios(req, res, next) {
+    db.any(`SELECT distinct u.* FROM "Usuarios" u WHERE u.id NOT IN(SELECT uid FROM "Admins")`)
+    .then(function(data) {
+        data.map(x=> {
+            x.fecha_nacimiento = JSON.stringify(x.fecha_nacimiento).split('T')[0].replace(/"/g, "");
+            return x;
+        })
+        res.status(200).json(data);
+    }).catch(function (err){
+        return next(err)
+    })
+}
+
+function getUsersAdmn(req, res, next) {
+    db.any(`SELECT distinct u.* FROM "Usuarios" u WHERE u.id IN(SELECT uid FROM "Admins")`)
+    .then(function(data) {
+        data.map(x=> {
+            x.fecha_nacimiento = JSON.stringify(x.fecha_nacimiento).split('T')[0].replace(/"/g, "");
+            return x;
+        })
+        res.status(200).json(data);
+    }).catch(function (err){
+        return next(err)
+    })
+}
+
+function addUserAdmin(req, res, next) {
+    console.log(req.body.id);
+    db.none(`INSERT INTO "Admins"(uid) VALUES ('${req.body.id}')`)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Usuario asignado como Administrador correctamente.'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    })
+}
+
+function deleteUserAdmin(req, res, next) {
+    db.none(`DELETE FROM "Admins" WHERE uid='${req.params.id}'`)
+    .then(function() {
+        res.status(200)
+        .json({
+            status : 'success',
+            message: 'Se eliminó el Administrador satisfactoriamente.'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    })
+}
+
 function getUserByEmail() {
     db.one(`SELECT * FROM "Usuarios WHERE correo='${req.params.correo}'`)
     .then(function (data) {
@@ -101,6 +158,7 @@ function getUserByEmail() {
 }
 
 function createUser(req, res, next) {
+    console.log("PRUEBA 2");
     db.none(`INSERT INTO "Usuarios"(id, nombre, apellido, correo, fecha_nacimiento, idcategoria, sexo, tutor_nombre,
         tutor_correo, tutor_telefono, curp, telefono, escuela, escuela_tipo, escuela_grado, experiencia,
         ha_participado, beca, detalle_exp, referencia, id_axtuser) 
@@ -599,7 +657,6 @@ function updateEstatusConvocatorias(req, res, next) {
 
 
 
-
 module.exports = {
     getAllUsers: getAllUsers,
     getUser: getUser,
@@ -637,6 +694,10 @@ module.exports = {
     createArchivoAdmn : createArchivoAdmn,
     deleteArchivoAdmn : deleteArchivoAdmn,
     getArchivoUser : getArchivoUser,
-    getArchivoAdminByUsers : getArchivoAdminByUsers
+    getArchivoAdminByUsers : getArchivoAdminByUsers,
+    getUsersUsuarios : getUsersUsuarios,
+    getUsersAdmn : getUsersAdmn,
+    addUserAdmin : addUserAdmin,
+    deleteUserAdmin : deleteUserAdmin
 }
 
