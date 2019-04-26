@@ -9,6 +9,7 @@ router.post('/', db.createUser);
 router.put('/complete/:id', db.updateUserComplete);
 router.put('/:id', db.updateUserTaller);
 router.delete('/delete/:id', db.removeUser);
+router.put('/pago/:id', db.updateUserNumConfPago);
 
 
 

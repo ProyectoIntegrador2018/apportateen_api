@@ -654,6 +654,20 @@ function updateEstatusConvocatorias(req, res, next) {
     })
 }
 
+function updateUserNumConfPago(req, res, next){
+    db.none(`UPDATE "Usuarios" SET num_conf_pago='${req.body.num_conf_pago}' WHERE id='${req.params.id}'`).then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha guardado satisfactoriamente tu número de confirmación de pago.'
+        })
+    }).catch(function(err){
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    })
+
+}
+
 
 
 
@@ -698,6 +712,7 @@ module.exports = {
     getUsersUsuarios : getUsersUsuarios,
     getUsersAdmn : getUsersAdmn,
     addUserAdmin : addUserAdmin,
-    deleteUserAdmin : deleteUserAdmin
+    deleteUserAdmin : deleteUserAdmin,
+    updateUserNumConfPago : updateUserNumConfPago
 }
 
