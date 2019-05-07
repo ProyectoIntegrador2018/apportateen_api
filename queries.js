@@ -34,7 +34,19 @@ function getArchivosAdmn(req, res, next) {
 //DB FUNCTION - GET ARCHIVOS FROM SPECIFIC USER
 function getArchivoUser(req, res, next) {
     console.log(req.param.id);
-    db.multi(`SELECT * FROM "Archivos" WHERE user_id='${req.params.id}'`).then(function(data){
+    db.multi(`SELECT * FROM "Archivos" WHERE user_id='${req.params.id}'; SELECT ar.user_id, COUNT(ar.id) as Cantidad FROM "Archivos" ar WHERE user_id='${req.params.id}' GROUP BY ar.user_id`).then(function(data){
+        data[0].forEach(x => {
+            var hasNoDoc = true;
+            data[1].forEach(y => {
+                if(x.user_id == y.user_id){
+                    x['count'] = y.cantidad;
+                    hasNoDoc = false; 
+                }
+            });
+            if(hasNoDoc){
+                x['count'] = 0;
+            }
+        });
         res.status(200).json(data);
     }).catch(function(err) {
         return next(err);
@@ -67,12 +79,24 @@ function deleteArchivoAdmn(req, res, next){
 }
 
 function getAllUsers(req, res, next) {
-    db.any(`SELECT * FROM "Usuarios" WHERE id != 'zlXAOjP1crTuc3SI2hgSfsh21e72' ORDER BY nombre ASC`).then(function(data){
-        data.map(x=> {
+    db.multi(`SELECT u.* FROM "Usuarios" u WHERE u.id NOT IN(SELECT uid FROM "Admins") ORDER BY nombre ASC; SELECT ar.user_id, COUNT(ar.id) as Cantidad FROM "Archivos" ar GROUP BY ar.user_id`).then(function(data){
+        data[0].map(x=> {
             x.fecha_nacimiento = JSON.stringify(x.fecha_nacimiento).split('T')[0].replace(/"/g, "");
             return x;
-        })
-        res.status(200).json(data);
+        });
+        data[0].forEach(x => {
+            var hasNoDoc = true;
+            data[1].forEach(y => {
+                if(x.id == y.user_id){
+                    x['documentos'] = y.cantidad;
+                    hasNoDoc = false; 
+                }
+            });
+            if(hasNoDoc){
+                x['documentos'] = 0;
+            }
+        });
+        res.status(200).json(data[0]);
     }).catch(function (err){
         return next(err);
     });
@@ -161,12 +185,12 @@ function createUser(req, res, next) {
     console.log(req.body.escuela);
     db.none(`INSERT INTO "Usuarios"(id, nombre, apellido, correo, fecha_nacimiento, idcategoria, sexo, tutor_nombre,
         tutor_correo, tutor_telefono, curp, telefono, escuela, escuela_tipo, escuela_grado, experiencia,
-        ha_participado, beca, detalle_exp, referencia, id_axtuser) 
+        ha_participado, beca, detalle_exp, referencia, id_axtuser, documentos) 
     SELECT '${req.body.id}', '${req.body.nombre}', '${req.body.apellido}', '${req.body.correo}', 
     TO_DATE('${req.body.fecha_nacimiento}', 'DD-MM-YYYY'), assign_category('${req.body.fecha_nacimiento}'), '${req.body.sexo}',
     '${req.body.tutor_nombre}', '${req.body.tutor_correo}', '${req.body.tutor_telefono}', '${req.body.curp}',
     '${req.body.telefono}', '${req.body.escuela}', '${req.body.escuela_tipo}', '${req.body.escuela_grado}',
-    '${req.body.experiencia}', '${req.body.exAlumno}', '${req.body.beca}', '${req.body.detalle_exp}', '${req.body.referencia}', '${req.body.id_axtuser}'`)
+    '${req.body.experiencia}', '${req.body.exAlumno}', '${req.body.beca}', '${req.body.detalle_exp}', '${req.body.referencia}', '${req.body.id_axtuser}',0`)
     .then(function(){
         res.status(200)
         .json({
@@ -422,7 +446,7 @@ function getCorreosByTallerId(req, res, next) {
 
 function createTaller(req, res, next) {
     db.none(`INSERT INTO "Talleres"(nombre, descripcion, sede, categoria, cupo) 
-    VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, ${req.body.categoria}, ${req.body.cupo})`)
+    VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, 9, ${req.body.cupo})`)
     .then(function(){
         res.status(200)
         .json({
