@@ -185,12 +185,12 @@ function createUser(req, res, next) {
     console.log(req.body.escuela);
     db.none(`INSERT INTO "Usuarios"(id, nombre, apellido, correo, fecha_nacimiento, idcategoria, sexo, tutor_nombre,
         tutor_correo, tutor_telefono, curp, telefono, escuela, escuela_tipo, escuela_grado, experiencia,
-        ha_participado, beca, detalle_exp, referencia, id_axtuser, documentos) 
+        ha_participado, beca, detalle_exp, referencia, id_axtuser, documentos,razon_beca) 
     SELECT '${req.body.id}', '${req.body.nombre}', '${req.body.apellido}', '${req.body.correo}', 
     TO_DATE('${req.body.fecha_nacimiento}', 'DD-MM-YYYY'), assign_category('${req.body.fecha_nacimiento}'), '${req.body.sexo}',
     '${req.body.tutor_nombre}', '${req.body.tutor_correo}', '${req.body.tutor_telefono}', '${req.body.curp}',
     '${req.body.telefono}', '${req.body.escuela}', '${req.body.escuela_tipo}', '${req.body.escuela_grado}',
-    '${req.body.experiencia}', '${req.body.exAlumno}', '${req.body.beca}', '${req.body.detalle_exp}', '${req.body.referencia}', '${req.body.id_axtuser}',0`)
+    '${req.body.experiencia}', '${req.body.exAlumno}', '${req.body.beca}', '${req.body.detalle_exp}', '${req.body.referencia}', '${req.body.id_axtuser}',0, '${req.body.razon_beca}'`)
     .then(function(){
         res.status(200)
         .json({
@@ -226,7 +226,7 @@ function updateUserTaller(req, res, next){
 }
 
 function updateUserComplete(req, res, next) {
-    db.none(`UPDATE "Usuarios" SET nombre='${req.body.nombre}', apellido='${req.body.apellido}', fecha_nacimiento=TO_DATE('${req.body.fecha_nacimiento}', 'DD-MM-YYYY'), correo='${req.body.correo}', telefono='${req.body.telefono}', curp='${req.body.curp}', idtaller=${req.body.idtaller}, escuela='${req.body.escuela}', idcategoria=${req.body.idcategoria}, sexo='${req.body.sexo}', tutor_nombre='${req.body.tutor_nombre}', tutor_correo='${req.body.tutor_correo}', tutor_telefono='${req.body.tutor_telefono}', escuela_tipo='${req.body.escuela_tipo}', escuela_grado='${req.body.escuela_grado}', ha_participado='${req.body.ha_participado}', beca='${req.body.beca}', detalle_exp='${req.body.detalle_exp}', referencia='${req.body.referencia}' WHERE id='${req.params.id}'`)
+    db.none(`UPDATE "Usuarios" SET nombre='${req.body.nombre}', apellido='${req.body.apellido}', fecha_nacimiento=TO_DATE('${req.body.fecha_nacimiento}', 'DD-MM-YYYY'), correo='${req.body.correo}', telefono='${req.body.telefono}', curp='${req.body.curp}', idtaller=${req.body.idtaller}, escuela='${req.body.escuela}', idcategoria=${req.body.idcategoria}, sexo='${req.body.sexo}', tutor_nombre='${req.body.tutor_nombre}', tutor_correo='${req.body.tutor_correo}', tutor_telefono='${req.body.tutor_telefono}', escuela_tipo='${req.body.escuela_tipo}', escuela_grado='${req.body.escuela_grado}', ha_participado='${req.body.ha_participado}', beca='${req.body.beca}', detalle_exp='${req.body.detalle_exp}', referencia='${req.body.referencia}', razon_beca='${req.body.razon_beca}' WHERE id='${req.params.id}'`)
     .then(function(){
         res.status(200)
         .json({
