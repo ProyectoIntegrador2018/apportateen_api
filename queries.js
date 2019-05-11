@@ -25,7 +25,7 @@ function createArchivoAdmn(req, res, next) {
 
 //DB FUNCTION - GET ALL ARCHIVOS FROM DATABASE
 function getArchivosAdmn(req, res, next) {
-    db.multi(`SELECT * FROM "Archivos"`).then(function(data){
+    db.multi(`SELECT ar.* FROM "Archivos" ar WHERE ar.user_id IN (SELECT uid FROM "Admins")`).then(function(data){
         res.status(200).json(data);
     }).catch(function(err) {
         return next(err);
