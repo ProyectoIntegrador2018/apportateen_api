@@ -445,8 +445,8 @@ function getCorreosByTallerId(req, res, next) {
 }
 
 function createTaller(req, res, next) {
-    db.none(`INSERT INTO "Talleres"(nombre, descripcion, sede, categoria, cupo) 
-    VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, 9, ${req.body.cupo})`)
+    db.none(`INSERT INTO "Talleres"(nombre, descripcion, sede, categoria, cupo, url, foto_path) 
+    VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, 9, ${req.body.cupo}, '${req.body.url}', '${req.body.foto_path}')`)
     .then(function(){
         res.status(200)
         .json({
@@ -462,7 +462,7 @@ function createTaller(req, res, next) {
 
 function updateTaller(req, res, next) {
     db.none(`UPDATE "Talleres" SET nombre='${req.body.nombre}', descripcion='${req.body.descripcion}', 
-    sede=${req.body.sede}, categoria=${req.body.categoria}, cupo= ${req.body.cupo} WHERE id=${req.params.id}`)
+    sede=${req.body.sede}, categoria=${req.body.categoria}, cupo= ${req.body.cupo}, url='${req.body.url}', foto_path='${req.body.foto_path}' WHERE id=${req.params.id}`)
     .then(function(){
         res.status(200)
         .json({
