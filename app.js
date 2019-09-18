@@ -41,8 +41,9 @@ app.use(function(req, res, next){
   } else if (user && user.name === 'admin' && user.pass === 'admin-password') {
     next();
   } else {
-    res.sendStatus(401);
-  }
+res.set({
+  'WWW-Authenticate': 'Basic'
+}).send(401);  }
 
 })
 
