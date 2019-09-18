@@ -5,6 +5,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var admin = require('firebase-admin');
 var serviceAccount = require('./apportateen-firebase-admin.json');
+var auth = require('basic-auth')
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -34,7 +35,15 @@ app.use(function(req, res, next){
   res.header("Access-Control-Allow-Methods", "GET, HEAD, POST, PUT, DELETE, CONNECT");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
   res.header("Access-Control-Allow-Credentials", true);
-  next();
+  var user = auth(req)
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else if (user && user.name === 'admin' && user.pass === 'admin-password') {
+    next();
+  } else {
+    res.sendStatus(401);
+  }
+
 })
 
 app.use('/', indexRouter);
