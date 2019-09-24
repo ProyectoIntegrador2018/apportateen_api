@@ -10,6 +10,7 @@
     "npm": "6.4.1"
   },
   "dependencies": {
+    "basic-auth": "^2.0.1",
     "bluebird": "^3.5.2",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
