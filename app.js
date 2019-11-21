@@ -31,7 +31,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(function(req, res, next){
-  const url = req.app.get('env') === 'development' ? "http://localhost:4200" : "https://apportateen.mx";
+  const url = "https://apportateen.mx";
   res.header("Access-Control-Allow-Origin", url);
   res.header("Access-Control-Allow-Methods", "GET, HEAD, POST, PUT, DELETE, CONNECT");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
@@ -69,6 +69,7 @@ app.use(function(req, res, next) {
 app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
+  console.log(req.app.get('env'));
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
   // render the error page
