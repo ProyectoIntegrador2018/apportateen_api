@@ -32,7 +32,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(function(req, res, next){
   const url = "https://apportateen.mx";
-  res.header("Access-Control-Allow-Origin", url);
+  const url = req.app.get('env') === 'development' ? "http://localhost:4200" : "https://apportateen.mx";
+  res.header("Access-Control-Allow-Origin", url); 
   res.header("Access-Control-Allow-Methods", "GET, HEAD, POST, PUT, DELETE, CONNECT");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
   res.header("Access-Control-Allow-Credentials", true);
