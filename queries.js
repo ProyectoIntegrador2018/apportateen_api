@@ -445,8 +445,32 @@ function getCorreosByTallerId(req, res, next) {
 }
 
 function createTaller(req, res, next) {
-    db.none(`INSERT INTO "Talleres"(nombre, descripcion, sede, categoria, cupo, url, foto_path) 
-    VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, 9, ${req.body.cupo}, '${req.body.url}', '${req.body.foto_path}')`)
+    let string = "{"
+    console.log(req.body);
+    for(let i = 0; i < req.body.url_array.length; i++){
+        string += req.body.url_array[i]
+        if(i == req.body.url_array.length-1){
+            string+="}"
+        }
+        else{
+            string+=","
+        }
+    }
+    let stringPath = "{"
+    for(let i = 0; i < req.body.url_array.length; i++){
+        stringPath += req.body.foto_path_array[i]
+        if(i == req.body.url_array.length-1){
+            stringPath+="}"
+        }
+        else{
+            stringPath+=","
+        }
+    }
+    console.log("HOLAAA");
+    console.log(string);
+    console.log(stringPath);
+    db.none(`INSERT INTO "Talleres"(nombre, descripcion, sede, categoria, cupo, url_array, foto_path_array) 
+    VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, 9, ${req.body.cupo}, '${string}', '${stringPath}')`)
     .then(function(){
         res.status(200)
         .json({
@@ -455,14 +479,16 @@ function createTaller(req, res, next) {
         });
     })
     .catch(function(err){
+        console.log("HOLA EN CATCH");
+        console.log(err);
         res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-        return next(err);
+        //return next(err);
     });
 }
 
 function updateTaller(req, res, next) {
     db.none(`UPDATE "Talleres" SET nombre='${req.body.nombre}', descripcion='${req.body.descripcion}', 
-    sede=${req.body.sede}, categoria=${req.body.categoria}, cupo= ${req.body.cupo}, url='${req.body.url}', foto_path='${req.body.foto_path}' WHERE id=${req.params.id}`)
+    sede=${req.body.sede}, categoria=${req.body.categoria}, cupo= ${req.body.cupo},url_array='${req.body.url_array}',foto_path_array='${req.body.foto_path_array}' WHERE id=${req.params.id}`)
     .then(function(){
         res.status(200)
         .json({
@@ -679,17 +705,20 @@ function updateEstatusConvocatorias(req, res, next) {
 }
 
 function updateUserNumConfPago(req, res, next){
-    db.none(`UPDATE "Usuarios" SET num_conf_pago='${req.body.num_conf_pago}' WHERE id='${req.params.id}'`).then(function(){
+    db.none(`UPDATE "Usuarios" SET num_conf_pago='${req.body.num_conf_pago}' WHERE id='${req.params.id}'`)
+    .then(() => {
         res.status(200)
         .json({
             status: 'success',
             message: 'Se ha guardado satisfactoriamente tu número de confirmación de pago.'
         })
-    }).catch(function(err){
-        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-        return next(err);
     })
-
+    .catch(error => {
+        console.log("hola");
+        console.log(error || error.message);
+        res.status(500).send(error);
+        return next(error);
+    })
 }
 
 
