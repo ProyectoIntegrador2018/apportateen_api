@@ -466,9 +466,12 @@ function createTaller(req, res, next) {
             stringPath+=","
         }
     }
-    console.log("HOLAAA");
-    console.log(string);
-    console.log(stringPath);
+    if(req.body.url_array.length < 1){
+        string = "{}"
+    }
+    if(req.body.foto_path_array.length < 1){
+        stringPath = "{}"
+    }
     db.none(`INSERT INTO "Talleres"(nombre, descripcion, sede, categoria, cupo, url_array, foto_path_array) 
     VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, 9, ${req.body.cupo}, '${string}', '${stringPath}')`)
     .then(function(){
@@ -487,8 +490,35 @@ function createTaller(req, res, next) {
 }
 
 function updateTaller(req, res, next) {
+    let string = "{"
+    console.log(req.body);
+    for(let i = 0; i < req.body.url_array.length; i++){
+        string += req.body.url_array[i]
+        if(i == req.body.url_array.length-1){
+            string+="}"
+        }
+        else{
+            string+=","
+        }
+    }
+    let stringPath = "{"
+    for(let i = 0; i < req.body.url_array.length; i++){
+        stringPath += req.body.foto_path_array[i]
+        if(i == req.body.url_array.length-1){
+            stringPath+="}"
+        }
+        else{
+            stringPath+=","
+        }
+    }
+    if(req.body.url_array.length < 1){
+        string = "{}"
+    }
+    if(req.body.foto_path_array.length < 1){
+        stringPath = "{}"
+    }
     db.none(`UPDATE "Talleres" SET nombre='${req.body.nombre}', descripcion='${req.body.descripcion}', 
-    sede=${req.body.sede}, categoria=${req.body.categoria}, cupo= ${req.body.cupo},url_array='${req.body.url_array}',foto_path_array='${req.body.foto_path_array}' WHERE id=${req.params.id}`)
+    sede=${req.body.sede}, categoria=${req.body.categoria}, cupo= ${req.body.cupo},url_array='${string}',foto_path_array='${stringPath}' WHERE id=${req.params.id}`)
     .then(function(){
         res.status(200)
         .json({
