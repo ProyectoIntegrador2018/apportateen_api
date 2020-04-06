@@ -419,6 +419,27 @@ function getTalleres(req, res, next) {
             data[1].forEach(e => {
                 if (x.sede === e.id){
                     x['sedeDesc'] = e.nombre;
+                    x['ubicacion'] = e.direccion;
+                }
+            });
+            return x;
+        })
+        res.status(200).json(data);
+    })
+    .catch(function (err){
+        return next(err);
+    })
+}
+
+function getTaller(req, res, next) {
+    let taller = parseInt(req.params.id);
+    db.multi(`SELECT * FROM "Talleres" where id = ${taller}; SELECT * FROM "Sedes";`)
+    .then(data => {
+        data[0].map(function(x){
+            data[1].forEach(e => {
+                if (x.sede === e.id){
+                    x['sedeDesc'] = e.nombre;
+                    x['ubicacion'] = e.direccion;
                 }
             });
             return x;
@@ -713,6 +734,7 @@ module.exports = {
     removeSede: removeSede,
     getCorreosByTallerId:getCorreosByTallerId,
     getTalleres: getTalleres,
+    getTaller: getTaller,
     createTaller: createTaller,
     updateTaller: updateTaller,
     removeTaller: removeTaller,
