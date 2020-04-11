@@ -516,7 +516,7 @@ function removeResponsable(req, res, next) {
 
 
 function getSedes(req, res, next) {
-    db.multi(`SELECT * FROM "Sedes" ORDER BY nombre ASC; SELECT * FROM "Talleres"; 
+    db.multi(`SELECT * FROM "Sedes" LEFT JOIN "Responsables" R on "Sedes".responsable = R.id_responsable ORDER BY "Sedes".nombre ASC; SELECT * FROM "Talleres"; 
     SELECT COUNT(*) as inscritos, idtaller FROM "Usuarios" GROUP BY idtaller;`)
         .then(data => {
             data[1].forEach(el => {
