@@ -18,8 +18,8 @@ var categoriasRouter = require('./routes/categorias');
 var convocatoriasRouter = require('./routes/convocatorias');
 var archivosRouter = require('./routes/archivos');
 var adminsRouter = require('./routes/admins');
-// var responsablesRouter = require('./routes/responsables')
 var inscripcionesRouter = require('./routes/inscripciones')
+var responsablesRouter = require('./routes/responsables')
 
 var app = express();
 
@@ -61,8 +61,8 @@ app.use('/categorias', categoriasRouter);
 app.use('/convocatorias', convocatoriasRouter);
 app.use('/archivos', archivosRouter);
 app.use('/admins', adminsRouter);
-// app.use('/responsable', responsablesRouter);
 app.use('/inscripciones', inscripcionesRouter);
+app.use('/responsable', responsablesRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
