@@ -332,6 +332,32 @@ function createGuardian(req, res, next){
     })
 }
 
+function createResponsable(req, res, next) {
+    db.none(`INSERT INTO "Responsables"(NOMBRE_RESPONSABLE, CORREO_RESPONSABLE) VALUES ('${req.body.nombre_responsable}','${req.body.correo_responsable}')
+    ON CONFLICT(correo_responsable) DO NOTHING;`)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha creado el responsable..'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    });
+}
+
+function getIDResponsable(req, res, next) {
+    db.multi(`SELECT id_responsable FROM "Responsables" WHERE CORREO_RESPONSABLE = '${req.params.correo_responsable}'`)
+    .then(data => {
+        res.status(200).json(data[0][0]);
+    })
+    .catch(function (err){
+        return next(err);
+    })
+}
+
 
 function getSedes(req, res, next) {
     db.multi(`SELECT * FROM "Sedes" LEFT JOIN "Responsables" R on "Sedes".responsable = R.id_responsable ORDER BY "Sedes".nombre ASC; SELECT * FROM "Talleres"; 
@@ -366,7 +392,7 @@ function getSedes(req, res, next) {
 }
 
 function createSede(req, res, next) {
-    db.none(`INSERT INTO "Sedes"(nombre, direccion) VALUES ('${req.body.nombre}', '${req.body.direccion}')`)
+    db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable) VALUES ('${req.body.nombre}', '${req.body.direccion}', '${req.body.responsable}')`)
     .then(function(){
         res.status(200)
         .json({
@@ -381,7 +407,9 @@ function createSede(req, res, next) {
 }
 
 function updateSede(req, res, next) {
-    db.none(`UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}', responsable='${req.body.responsable}' WHERE id=${req.params.id}`)
+    db.none(`
+    UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}', responsable='${req.body.responsable}' WHERE id=${req.params.id};
+    `)
     .then(function(){
         res.status(200)
         .json({
@@ -818,6 +846,8 @@ module.exports = {
     getUsersAdmn : getUsersAdmn,
     addUserAdmin : addUserAdmin,
     deleteUserAdmin : deleteUserAdmin,
-    updateUserNumConfPago : updateUserNumConfPago
+    updateUserNumConfPago : updateUserNumConfPago,
+    createResponsable: createResponsable,
+    getIDResponsable: getIDResponsable
 }
 
