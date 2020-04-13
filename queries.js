@@ -331,6 +331,45 @@ function createGuardian(req, res, next){
         return next(err);
     })
 }
+function agregaTutor(req, res, next){
+    console.log(req.body);
+    db.none(`INSERT INTO "Tutores"(nombre_tutor, correo_tutor, telefono_tutor) 
+    VALUES ('${req.body.nombre_tutor}', '${req.body.correo_tutor}','${req.body.telefono_tutor}') ON CONFLICT(correo_tutor) DO NOTHING;`)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha agregado el tutor..'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error al crear tutor. Vuelva a intentar.');
+        return next(err);
+    })
+}
+
+function getTutor(req,res,next){
+    db.multi(`SELECT * FROM "Tutores" WHERE id_tutor = '${req.params.id_tutor}'`).then(data => {
+        res.status(200).json(data[0][0]);
+    })
+    .catch(function(err){
+        return next(err);
+    })
+}
+
+function updateTutor(req,res,next){
+    db.none(`UPDATE "Tutores" SET nombre_tutor = '${req.body.nombre_tutor}', correo_tutor = '${req.body.correo_tutor}', telefono_tutor = '${req.body.telefono_tutor}' WHERE id_tutor = '${req.params.id_tutor}'`).then(() => {
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha actualizado la información del tutor.'
+        })
+        .catch(function(err){
+            res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+            return next(err);
+        })
+    })
+}
 
 
 function getSedes(req, res, next) {
@@ -467,7 +506,7 @@ function getCorreosByTallerId(req, res, next) {
 
 function createTaller(req, res, next) {
     let string = "{"
-    console.log(req.body);
+
     for(let i = 0; i < req.body.url_array.length; i++){
         string += req.body.url_array[i]
         if(i == req.body.url_array.length-1){
@@ -493,8 +532,10 @@ function createTaller(req, res, next) {
     if(req.body.foto_path_array.length < 1){
         stringPath = "{}"
     }
-    db.none(`INSERT INTO "Talleres"(nombre, descripcion, sede, categoria, cupo, url_array, foto_path_array) 
-    VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, 9, ${req.body.cupo}, '${string}', '${stringPath}')`)
+
+    db.none(`INSERT INTO "Talleres"(nombre, descripcion, sede, categoria, cupo, url_array, foto_path_array,tutor) 
+    VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, 9, ${req.body.cupo}, '${string}', '${stringPath}','${req.body.tutor}')`)
+
     .then(function(){
         res.status(200)
         .json({
@@ -539,7 +580,9 @@ function updateTaller(req, res, next) {
         stringPath = "{}"
     }
     db.none(`UPDATE "Talleres" SET nombre='${req.body.nombre}', descripcion='${req.body.descripcion}', 
-    sede=${req.body.sede}, categoria=${req.body.categoria}, cupo= ${req.body.cupo},url_array='${string}',foto_path_array='${stringPath}' WHERE id=${req.params.id}`)
+
+    sede=${req.body.sede}, categoria=${req.body.categoria}, cupo= ${req.body.cupo},url_array='${string}',foto_path_array='${stringPath}', tutor='${req.body.tutor}' WHERE id=${req.params.id}`)
+
     .then(function(){
         res.status(200)
         .json({
@@ -787,6 +830,11 @@ module.exports = {
     removeSponsor:removeSponsor,
     getGuardianByChildId: getGuardianByChildId,
     createGuardian: createGuardian,
+    
+    agregaTutor: agregaTutor,
+    getTutor: getTutor,
+    updateTutor: updateTutor,
+
     getSedes: getSedes,
     createSede: createSede,
     updateSede: updateSede,
@@ -818,6 +866,9 @@ module.exports = {
     getUsersAdmn : getUsersAdmn,
     addUserAdmin : addUserAdmin,
     deleteUserAdmin : deleteUserAdmin,
-    updateUserNumConfPago : updateUserNumConfPago
+    updateUserNumConfPago : updateUserNumConfPago,
+    createResponsable: createResponsable,
+    getIDResponsable: getIDResponsable,
+
 }
 
