@@ -470,19 +470,20 @@ function getTalleres(req, res, next) {
     })
 }
 
+
 function getTaller(req, res, next) {
     let taller = parseInt(req.params.id);
-    db.multi(`SELECT * FROM "Talleres" where id = ${taller}; SELECT * FROM "Sedes";`)
+    db.multi(`SELECT T.*, S.nombre as sedeDesc, S.direccion, S.id as idSede FROM "Talleres" T JOIN "Sedes" S ON T.sede = S.id WHERE T.id = ${taller}; SELECT COUNT(*) as inscritos FROM "Usuarios" WHERE idtaller = ${taller};`)
     .then(data => {
-        data[0].map(function(x){
-            data[1].forEach(e => {
-                if (x.sede === e.id){
-                    x['sedeDesc'] = e.nombre;
-                    x['ubicacion'] = e.direccion;
-                }
-            });
-            return x;
-        })
+        // data[0].map(function(x){
+        //     data[1].forEach(e => {
+        //         if (x.sede === e.id){
+        //             x['sedeDesc'] = e.nombre;
+        //             x['ubicacion'] = e.direccion;
+        //         }
+        //     });
+        //     return x;
+        // })
         res.status(200).json(data);
     })
     .catch(function (err){
