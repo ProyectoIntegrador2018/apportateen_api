@@ -430,6 +430,21 @@ function getTalleres(req, res, next) {
     })
 }
 
+<<<<<<< HEAD
+=======
+
+function getTaller(req, res, next) {
+    let taller = parseInt(req.params.id);
+    db.multi(`SELECT T.*, S.nombre as sedeDesc, S.direccion, S.id as idSede, S.gratis FROM "Talleres" T JOIN "Sedes" S ON T.sede = S.id WHERE T.id = ${taller}; SELECT COUNT(*) as inscritos FROM "Usuarios" WHERE idtaller = ${taller};`)
+    .then(data => {
+        res.status(200).json(data);
+    })
+    .catch(function (err){
+        return next(err);
+    })
+}
+
+>>>>>>> d151ecf... queries para establecer el costo de los talleres
 function getCorreosByTallerId(req, res, next) {
     let query = 'SELECT correo FROM "Usuarios" where id NOT IN (SELECT uid FROM "Admins")';
     let taller = parseInt(req.params.id);
@@ -442,6 +457,29 @@ function getCorreosByTallerId(req, res, next) {
         res.status(500).send('Ha sucedido un error obteniendo la lista de correos correspondientes. Vuelva a intentar.');
         return next(err);
     });
+}
+
+function getCostos(req, res, next){
+    db.one('SELECT escuela_privada, escuela_publica FROM "CostosTalleres"').then(function(data){
+        res.status(200).json(data);
+    }).catch(function (err){
+        return next(err);
+    });
+}
+
+function updateCostos(req, res, next){
+    db.none(`UPDATE "CostosTalleres" SET escuela_publica='${req.body.escuela_publica}', escuela_privada=${req.body.escuela_privada}`)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se han modificado los costos.'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    })
 }
 
 function createTaller(req, res, next) {
@@ -713,6 +751,12 @@ module.exports = {
     removeSede: removeSede,
     getCorreosByTallerId:getCorreosByTallerId,
     getTalleres: getTalleres,
+<<<<<<< HEAD
+=======
+    getTaller: getTaller,
+    getCostos: getCostos,
+    updateCostos: updateCostos,
+>>>>>>> d151ecf... queries para establecer el costo de los talleres
     createTaller: createTaller,
     updateTaller: updateTaller,
     removeTaller: removeTaller,
@@ -737,6 +781,12 @@ module.exports = {
     getUsersAdmn : getUsersAdmn,
     addUserAdmin : addUserAdmin,
     deleteUserAdmin : deleteUserAdmin,
+<<<<<<< HEAD
     updateUserNumConfPago : updateUserNumConfPago
+=======
+    updateUserNumConfPago : updateUserNumConfPago,
+    // createResponsable: createResponsable,
+    // getIDResponsable: getIDResponsable,
+>>>>>>> d151ecf... queries para establecer el costo de los talleres
 }
 
