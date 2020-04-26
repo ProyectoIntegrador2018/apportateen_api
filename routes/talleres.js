@@ -3,6 +3,8 @@ var router = express.Router();
 var db = require('../queries');
 
 
+router.get('/costos', db.getCostos);
+router.put('/costos', db.updateCostos);
 router.get('/', db.getTalleres);
 router.get('/detalle/:id', db.getTaller);
 router.get('/:id', db.getCorreosByTallerId);

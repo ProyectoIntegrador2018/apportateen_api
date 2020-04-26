@@ -473,17 +473,8 @@ function getTalleres(req, res, next) {
 
 function getTaller(req, res, next) {
     let taller = parseInt(req.params.id);
-    db.multi(`SELECT T.*, S.nombre as sedeDesc, S.direccion, S.id as idSede FROM "Talleres" T JOIN "Sedes" S ON T.sede = S.id WHERE T.id = ${taller}; SELECT COUNT(*) as inscritos FROM "Usuarios" WHERE idtaller = ${taller};`)
+    db.multi(`SELECT T.*, S.nombre as sedeDesc, S.direccion, S.id as idSede, S.gratis FROM "Talleres" T JOIN "Sedes" S ON T.sede = S.id WHERE T.id = ${taller}; SELECT COUNT(*) as inscritos FROM "Usuarios" WHERE idtaller = ${taller};`)
     .then(data => {
-        // data[0].map(function(x){
-        //     data[1].forEach(e => {
-        //         if (x.sede === e.id){
-        //             x['sedeDesc'] = e.nombre;
-        //             x['ubicacion'] = e.direccion;
-        //         }
-        //     });
-        //     return x;
-        // })
         res.status(200).json(data);
     })
     .catch(function (err){
@@ -503,6 +494,29 @@ function getCorreosByTallerId(req, res, next) {
         res.status(500).send('Ha sucedido un error obteniendo la lista de correos correspondientes. Vuelva a intentar.');
         return next(err);
     });
+}
+
+function getCostos(req, res, next){
+    db.one('SELECT escuela_privada, escuela_publica FROM "CostosTalleres"').then(function(data){
+        res.status(200).json(data);
+    }).catch(function (err){
+        return next(err);
+    });
+}
+
+function updateCostos(req, res, next){
+    db.none(`UPDATE "CostosTalleres" SET escuela_publica='${req.body.escuela_publica}', escuela_privada=${req.body.escuela_privada}`)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se han modificado los costos.'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    })
 }
 
 function createTaller(req, res, next) {
@@ -843,6 +857,8 @@ module.exports = {
     getCorreosByTallerId:getCorreosByTallerId,
     getTalleres: getTalleres,
     getTaller: getTaller,
+    getCostos: getCostos,
+    updateCostos: updateCostos,
     createTaller: createTaller,
     updateTaller: updateTaller,
     removeTaller: removeTaller,
@@ -868,8 +884,7 @@ module.exports = {
     addUserAdmin : addUserAdmin,
     deleteUserAdmin : deleteUserAdmin,
     updateUserNumConfPago : updateUserNumConfPago,
-    createResponsable: createResponsable,
-    getIDResponsable: getIDResponsable,
-
+    // createResponsable: createResponsable,
+    // getIDResponsable: getIDResponsable,
 }
 
