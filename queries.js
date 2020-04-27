@@ -392,18 +392,34 @@ function getSedes(req, res, next) {
 }
 
 function createSede(req, res, next) {
-    db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable) VALUES ('${req.body.nombre}', '${req.body.direccion}', '${req.body.responsable}')`)
-    .then(function(){
-        res.status(200)
-        .json({
-            status: 'success',
-            message: 'Se ha creado la sede.'
-        });
-    })
-    .catch(function(err){
-        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-        return next(err);
-    });
+    if (req.body.responsable == null){
+        db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable) VALUES ('${req.body.nombre}', '${req.body.direccion}', null)`)
+            .then(function(){
+                res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'Se ha creado la sede.'
+                });
+            })
+            .catch(function(err){
+                res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+                return next(err);
+            });
+    }
+    else{
+        db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable) VALUES ('${req.body.nombre}', '${req.body.direccion}', '${req.body.responsable}')`)
+            .then(function(){
+                res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'Se ha creado la sede.'
+                });
+            })
+            .catch(function(err){
+                res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+                return next(err);
+            });
+    }
 }
 
 function updateSede(req, res, next) {
