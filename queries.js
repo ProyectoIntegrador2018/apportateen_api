@@ -212,12 +212,19 @@ function createUser(req, res, next) {
 }
 
 function updateUserTaller(req, res, next) {
-    db.none(`UPDATE "Usuarios" SET idtaller=${req.body.idtaller}, id_axtuser='${req.body.id_axtuser}' WHERE id='${req.params.id}'`).then(function () {
+
+    console.log(req.body);
+    console.log(req.params);
+
+    let talleres = "{" + req.body.talleres.toString() + "}";
+    console.log(talleres);
+
+    db.none(`UPDATE "Usuarios" SET talleres='${talleres}' ,id_axtuser='${req.body.id_axtuser}' WHERE id='${req.params.id}'`).then(function () {
         res.status(200)
             .json({
                 status: 'success',
                 message: 'Se ha modificado satisfactoriamente tu inscripción.'
-            })
+            });
     }).catch(function (err) {
         res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
         return next(err);
@@ -226,7 +233,7 @@ function updateUserTaller(req, res, next) {
 }
 
 function updateUserComplete(req, res, next) {
-    db.none(`UPDATE "Usuarios" SET nombre='${req.body.nombre}', apellido='${req.body.apellido}', fecha_nacimiento=TO_DATE('${req.body.fecha_nacimiento}', 'DD-MM-YYYY'), correo='${req.body.correo}', telefono='${req.body.telefono}', curp='${req.body.curp}', idtaller=${req.body.idtaller}, escuela='${req.body.escuela}', idcategoria=${req.body.idcategoria}, sexo='${req.body.sexo}', tutor_nombre='${req.body.tutor_nombre}', tutor_correo='${req.body.tutor_correo}', tutor_telefono='${req.body.tutor_telefono}', escuela_tipo='${req.body.escuela_tipo}', escuela_grado='${req.body.escuela_grado}', ha_participado='${req.body.ha_participado}', beca='${req.body.beca}', detalle_exp='${req.body.detalle_exp}', referencia='${req.body.referencia}', razon_beca='${req.body.razon_beca}' WHERE id='${req.params.id}'`)
+    db.none(`UPDATE "Usuarios" SET nombre='${req.body.nombre}', apellido='${req.body.apellido}', fecha_nacimiento=TO_DATE('${req.body.fecha_nacimiento}', 'DD-MM-YYYY'), correo='${req.body.correo}', telefono='${req.body.telefono}', curp='${req.body.curp}', talleres=${req.body.idtaller}, escuela='${req.body.escuela}', idcategoria=${req.body.idcategoria}, sexo='${req.body.sexo}', tutor_nombre='${req.body.tutor_nombre}', tutor_correo='${req.body.tutor_correo}', tutor_telefono='${req.body.tutor_telefono}', escuela_tipo='${req.body.escuela_tipo}', escuela_grado='${req.body.escuela_grado}', ha_participado='${req.body.ha_participado}', beca='${req.body.beca}', detalle_exp='${req.body.detalle_exp}', referencia='${req.body.referencia}', razon_beca='${req.body.razon_beca}' WHERE id='${req.params.id}'`)
         .then(function () {
             res.status(200)
                 .json({
@@ -538,6 +545,7 @@ function createTaller(req, res, next) {
         stringPath = "{}"
     }
 
+    // TODO: editar query con nuevas columnas, y front para estos datos al crear taller
     db.none(`INSERT INTO "Talleres"(nombre, descripcion, sede, categoria, cupo, url_array, foto_path_array,tutor) 
     VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, 9, ${req.body.cupo}, '${string}', '${stringPath}','${req.body.tutor}')`)
 
@@ -584,6 +592,8 @@ function updateTaller(req, res, next) {
     if (req.body.foto_path_array.length < 1) {
         stringPath = "{}"
     }
+
+    // TODO: editar query con nuevas columnas, y front para estos datos al editar taller
     db.none(`UPDATE "Talleres" SET nombre='${req.body.nombre}', descripcion='${req.body.descripcion}', 
 
     sede=${req.body.sede}, categoria=${req.body.categoria}, cupo= ${req.body.cupo},url_array='${string}',foto_path_array='${stringPath}', tutor='${req.body.tutor}' WHERE id=${req.params.id}`)
