@@ -545,6 +545,7 @@ function createTaller(req, res, next) {
         stringPath = "{}"
     }
 
+    // TODO: editar query con nuevas columnas, y front para estos datos al crear taller
     db.none(`INSERT INTO "Talleres"(nombre, descripcion, sede, categoria, cupo, url_array, foto_path_array,tutor) 
     VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, 9, ${req.body.cupo}, '${string}', '${stringPath}','${req.body.tutor}')`)
 
@@ -591,6 +592,8 @@ function updateTaller(req, res, next) {
     if (req.body.foto_path_array.length < 1) {
         stringPath = "{}"
     }
+
+    // TODO: editar query con nuevas columnas, y front para estos datos al editar taller
     db.none(`UPDATE "Talleres" SET nombre='${req.body.nombre}', descripcion='${req.body.descripcion}', 
 
     sede=${req.body.sede}, categoria=${req.body.categoria}, cupo= ${req.body.cupo},url_array='${string}',foto_path_array='${stringPath}', tutor='${req.body.tutor}' WHERE id=${req.params.id}`)
