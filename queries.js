@@ -375,6 +375,27 @@ function updateResponsable(req, res, next){
     })
 }
 
+function removeResponsable(req,res,next){
+    // Eliminar la relación del responsable de la sede
+    // UN UPDATE A LA SEDE CON NULL
+
+    // Eliminar el responsable de la tabla
+
+    var id_responsable = parseInt(req.params.id);
+    db.result(`DELETE FROM "Responsables" WHERE id_responsable=${id_responsable}`)
+    .then(function(){
+        res.status(200)
+        .json({
+          status: 'success',
+          message: 'Se elimino el responsable.'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error al eliminar el responsable de la tabla. Vuelva a intentar.');
+        return next(err);
+    })
+}
+
 
 function getSedes(req, res, next) {
     db.multi(`SELECT * FROM "Sedes" LEFT JOIN "Responsables" R on "Sedes".responsable = R.id_responsable ORDER BY "Sedes".nombre ASC; SELECT * FROM "Talleres"; 
@@ -440,8 +461,16 @@ function createSede(req, res, next) {
 }
 
 function updateSede(req, res, next) {
+    // Si el responsable no es null le agrega las comillas
+    if (req.body.responsable != null){
+        req.body.responsable = `'${req.body.responsable}'`
+    }
+    console.log("=============")
+    console.log(req.body.responsable)
+    console.log("=============")
+
     db.none(`
-    UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}' WHERE id=${req.params.id};
+    UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}', responsable=${req.body.responsable} WHERE id=${req.params.id};
     `)
     .then(function(){
         res.status(200)
@@ -882,6 +911,7 @@ module.exports = {
     updateUserNumConfPago : updateUserNumConfPago,
     createResponsable: createResponsable,
     getIDResponsable: getIDResponsable,
-    updateResponsable: updateResponsable
+    updateResponsable: updateResponsable,
+    removeResponsable: removeResponsable
 }
 
