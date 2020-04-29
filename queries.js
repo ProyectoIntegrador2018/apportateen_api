@@ -358,6 +358,23 @@ function getIDResponsable(req, res, next) {
     })
 }
 
+function updateResponsable(req, res, next){
+    db.none(`
+    UPDATE "Responsables" SET nombre_responsable='${req.body.nombre_responsable}', correo_responsable='${req.body.correo_responsable}'  where id_responsable='${req.params.id}'
+    `)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha modificado el responsable.'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error.');
+        return next(err);
+    })
+}
+
 
 function getSedes(req, res, next) {
     db.multi(`SELECT * FROM "Sedes" LEFT JOIN "Responsables" R on "Sedes".responsable = R.id_responsable ORDER BY "Sedes".nombre ASC; SELECT * FROM "Talleres"; 
@@ -424,7 +441,7 @@ function createSede(req, res, next) {
 
 function updateSede(req, res, next) {
     db.none(`
-    UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}', responsable='${req.body.responsable}' WHERE id=${req.params.id};
+    UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}' WHERE id=${req.params.id};
     `)
     .then(function(){
         res.status(200)
@@ -864,6 +881,7 @@ module.exports = {
     deleteUserAdmin : deleteUserAdmin,
     updateUserNumConfPago : updateUserNumConfPago,
     createResponsable: createResponsable,
-    getIDResponsable: getIDResponsable
+    getIDResponsable: getIDResponsable,
+    updateResponsable: updateResponsable
 }
 
