@@ -383,9 +383,68 @@ function updateTutor(req, res, next) {
     })
 }
 
+function createResponsable(req, res, next) {
+    db.none(`INSERT INTO "Responsables"(NOMBRE_RESPONSABLE, CORREO_RESPONSABLE) VALUES ('${req.body.nombre_responsable}','${req.body.correo_responsable}')
+    ON CONFLICT(correo_responsable) DO NOTHING;`)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha creado el responsable..'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    });
+}
+
+function getIDResponsable(req, res, next) {
+    db.multi(`SELECT id_responsable FROM "Responsables" WHERE CORREO_RESPONSABLE = '${req.params.correo_responsable}'`)
+    .then(data => {
+        res.status(200).json(data[0][0]);
+    })
+    .catch(function (err){
+        return next(err);
+    })
+}
+
+function updateResponsable(req, res, next){
+    db.none(`
+    UPDATE "Responsables" SET nombre_responsable='${req.body.nombre_responsable}', correo_responsable='${req.body.correo_responsable}'  where id_responsable='${req.params.id}'
+    `)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha modificado el responsable.'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error.');
+        return next(err);
+    })
+}
+
+function removeResponsable(req,res,next){
+    var id_responsable = parseInt(req.params.id);
+    db.result(`DELETE FROM "Responsables" WHERE "id_responsable"=${id_responsable} AND "id_responsable" NOT IN (SELECT responsable FROM "Sedes" WHERE responsable IS NOT NULL)`)
+    .then(function(){
+        res.status(200)
+        .json({
+          status: 'success',
+          message: 'Se elimino el responsable.'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send(err);
+        return next(err);
+    })
+}
+
 
 function getSedes(req, res, next) {
-    db.multi(`SELECT * FROM "Sedes" ORDER BY nombre ASC; SELECT * FROM "Talleres"; 
+    db.multi(`SELECT * FROM "Sedes" LEFT JOIN "Responsables" R on "Sedes".responsable = R.id_responsable ORDER BY "Sedes".nombre ASC; SELECT * FROM "Talleres"; 
     SELECT COUNT(*) as inscritos, idtaller FROM "Usuarios" GROUP BY idtaller;`)
         .then(data => {
             data[1].forEach(el => {
@@ -418,29 +477,56 @@ function getSedes(req, res, next) {
 }
 
 function createSede(req, res, next) {
-    db.none(`INSERT INTO "Sedes"(nombre, direccion, gratis) VALUES ('${req.body.nombre}', '${req.body.direccion}', '${req.body.gratis}')`)
-        .then(function () {
-            res.status(200)
+    if (req.body.responsable == null){
+        db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable, gratis) VALUES ('${req.body.nombre}', '${req.body.direccion}, null, '${req.body.gratis}')`)
+            .then(function(){
+                res.status(200)
                 .json({
                     status: 'success',
                     message: 'Se ha creado la sede.'
                 });
-        })
+            })
+            .catch(function(err){
+                res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+                return next(err);
+            });
+    }
+    else{
+        db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable, gratis) VALUES ('${req.body.nombre}', '${req.body.direccion}', '${req.body.responsable}', '${req.body.gratis}')`)
+            .then(function(){
+                res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'Se ha creado la sede.'
+                });
+            })
+            .catch(function(err){
+                res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+                return next(err);
+            });
+    }
 }
 
 function updateSede(req, res, next) {
-    db.none(`UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}', gratis='${req.body.gratis}' WHERE id=${req.params.id}`)
-        .then(function () {
-            res.status(200)
-                .json({
-                    status: 'success',
-                    message: 'Se ha modificado la sede.'
-                });
-        })
-        .catch(function (err) {
-            res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-            return next(err);
-        })
+    // Si el responsable no es null le agrega las comillas
+    if (req.body.responsable != null){
+        req.body.responsable = `'${req.body.responsable}'`
+    }
+
+    db.none(`
+    UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}', responsable=${req.body.responsable}, gratis='${req.body.gratis}' WHERE id=${req.params.id};
+    `)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha modificado la sede.'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    })
 }
 
 
@@ -884,17 +970,20 @@ module.exports = {
     removeCategoria: removeCategoria,
     getEstatusConvocatorias: getEstatusConvocatorias,
     updateEstatusConvocatorias: updateEstatusConvocatorias,
-    updateUserComplete: updateUserComplete,
-    getArchivosAdmn: getArchivosAdmn,
-    createArchivoAdmn: createArchivoAdmn,
-    deleteArchivoAdmn: deleteArchivoAdmn,
-    getArchivoUser: getArchivoUser,
-    getArchivoAdminByUsers: getArchivoAdminByUsers,
-    getUsersUsuarios: getUsersUsuarios,
-    getUsersAdmn: getUsersAdmn,
-    addUserAdmin: addUserAdmin,
-    deleteUserAdmin: deleteUserAdmin,
-    updateUserNumConfPago: updateUserNumConfPago
-
+    updateUserComplete : updateUserComplete,
+    getArchivosAdmn : getArchivosAdmn,
+    createArchivoAdmn : createArchivoAdmn,
+    deleteArchivoAdmn : deleteArchivoAdmn,
+    getArchivoUser : getArchivoUser,
+    getArchivoAdminByUsers : getArchivoAdminByUsers,
+    getUsersUsuarios : getUsersUsuarios,
+    getUsersAdmn : getUsersAdmn,
+    addUserAdmin : addUserAdmin,
+    deleteUserAdmin : deleteUserAdmin,
+    updateUserNumConfPago : updateUserNumConfPago,
+    createResponsable: createResponsable,
+    getIDResponsable: getIDResponsable,
+    updateResponsable: updateResponsable,
+    removeResponsable: removeResponsable
 }
 
