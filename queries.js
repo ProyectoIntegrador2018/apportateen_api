@@ -591,13 +591,36 @@ function updateSede(req, res, next) {
             res.status(200)
                 .json({
                     status: 'success',
-                    message: 'Se ha modificado la sede.'
+                    message: 'Se ha creado la sede.'
                 });
-        })
-        .catch(function (err) {
-            res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-            return next(err);
-        })
+            })
+            .catch(function(err){
+                res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+                return next(err);
+            });
+    }
+}
+
+function updateSede(req, res, next) {
+    // Si el responsable no es null le agrega las comillas
+    if (req.body.responsable != null){
+        req.body.responsable = `'${req.body.responsable}'`
+    }
+
+    db.none(`
+    UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}', responsable=${req.body.responsable} WHERE id=${req.params.id};
+    `)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha modificado la sede.'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    })
 }
 
 
