@@ -405,7 +405,7 @@ function getSedes(req, res, next) {
 }
 
 function createSede(req, res, next) {
-    db.none(`INSERT INTO "Sedes"(nombre, direccion) VALUES ('${req.body.nombre}', '${req.body.direccion}')`)
+    db.none(`INSERT INTO "Sedes"(nombre, direccion, gratis) VALUES ('${req.body.nombre}', '${req.body.direccion}', '${req.body.gratis}')`)
     .then(function(){
         res.status(200)
         .json({
@@ -420,7 +420,7 @@ function createSede(req, res, next) {
 }
 
 function updateSede(req, res, next) {
-    db.none(`UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}' WHERE id=${req.params.id}`)
+    db.none(`UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}', gratis='${req.body.gratis}' WHERE id=${req.params.id}`)
     .then(function(){
         res.status(200)
         .json({
