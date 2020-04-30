@@ -428,7 +428,7 @@ function updateResponsable(req, res, next){
 
 function removeResponsable(req,res,next){
     var id_responsable = parseInt(req.params.id);
-    db.result(`DELETE FROM "Responsables" WHERE "id_responsable"=${id_responsable} AND "id_responsable" NOT IN (SELECT responsable FROM "Sedes")`)
+    db.result(`DELETE FROM "Responsables" WHERE "id_responsable"=${id_responsable} AND "id_responsable" NOT IN (SELECT responsable FROM "Sedes" WHERE responsable IS NOT NULL)`)
     .then(function(){
         res.status(200)
         .json({
