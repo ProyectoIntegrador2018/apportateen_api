@@ -417,6 +417,7 @@ function getSedes(req, res, next) {
 }
 
 function createSede(req, res, next) {
+<<<<<<< HEAD
     db.none(`INSERT INTO "Sedes"(nombre, direccion) VALUES ('${req.body.nombre}', '${req.body.direccion}')`)
         .then(function () {
             res.status(200)
@@ -428,10 +429,19 @@ function createSede(req, res, next) {
         .catch(function (err) {
             res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
             return next(err);
+=======
+    db.none(`INSERT INTO "Sedes"(nombre, direccion, gratis) VALUES ('${req.body.nombre}', '${req.body.direccion}', '${req.body.gratis}')`)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha creado la sede.'
+>>>>>>> 30b82db... queries sedes para incluir campo gratis
         });
 }
 
 function updateSede(req, res, next) {
+<<<<<<< HEAD
     db.none(`UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}' WHERE id=${req.params.id}`)
         .then(function () {
             res.status(200)
@@ -444,6 +454,20 @@ function updateSede(req, res, next) {
             res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
             return next(err);
         })
+=======
+    db.none(`UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}', gratis='${req.body.gratis}' WHERE id=${req.params.id}`)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se ha modificado la sede.'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    })
+>>>>>>> 30b82db... queries sedes para incluir campo gratis
 }
 
 
