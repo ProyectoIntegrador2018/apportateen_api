@@ -643,9 +643,8 @@ function createTaller(req, res, next) {
     }
 
     // TODO: editar query con nuevas columnas, y front para estos datos al crear taller
-    db.none(`INSERT INTO "Talleres"(nombre, descripcion, sede, categoria, cupo, url_array, foto_path_array,tutor) 
-    VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, 9, ${req.body.cupo}, '${string}', '${stringPath}','${req.body.tutor}')`)
-
+    db.none(`INSERT INTO "Talleres"(nombre, descripcion, sede, categoria, cupo, url_array, foto_path_array,tutor, hora_inicio, hora_fin, fecha_inicio, fecha_fin, estado) 
+    VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, 9, ${req.body.cupo}, '${string}', '${stringPath}','${req.body.tutor}','${req.body.hora_inicio}','${req.body.hora_fin}','${req.body.fecha_inicio}','${req.body.fecha_fin}','${req.body.estado}')`)
         .then(function () {
             res.status(200)
                 .json({
@@ -654,7 +653,6 @@ function createTaller(req, res, next) {
                 });
         })
         .catch(function (err) {
-            console.log("HOLA EN CATCH");
             console.log(err);
             res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
             //return next(err);
@@ -689,11 +687,11 @@ function updateTaller(req, res, next) {
     if (req.body.foto_path_array.length < 1) {
         stringPath = "{}"
     }
-
+    
+    
     // TODO: editar query con nuevas columnas, y front para estos datos al editar taller
-    db.none(`UPDATE "Talleres" SET nombre='${req.body.nombre}', descripcion='${req.body.descripcion}', 
-
-    sede=${req.body.sede}, categoria=${req.body.categoria}, cupo= ${req.body.cupo},url_array='${string}',foto_path_array='${stringPath}', tutor='${req.body.tutor}' WHERE id=${req.params.id}`)
+    // hora_inicio, hora_fin, fecha_inicio, fecha_fin, estado
+    db.none(`UPDATE "Talleres" SET nombre='${req.body.nombre}', descripcion='${req.body.descripcion}', sede=${req.body.sede}, categoria=${req.body.categoria}, cupo= ${req.body.cupo},url_array='${string}',foto_path_array='${stringPath}', tutor='${req.body.tutor}',hora_inicio='${req.body.hora_inicio}', hora_fin='${req.body.hora_fin}',fecha_inicio='${req.body.fecha_inicio}',fecha_fin='${req.body.fecha_fin}',estado='${req.body.estado}' WHERE id=${req.params.id}`)
 
         .then(function () {
             res.status(200)
