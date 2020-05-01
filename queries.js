@@ -473,11 +473,12 @@ function getSedes(req, res, next) {
         .catch(function (err) {
             return next(err);
         })
+
 }
 
 function createSede(req, res, next) {
     if (req.body.responsable == null){
-        db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable) VALUES ('${req.body.nombre}', '${req.body.direccion}', null)`)
+        db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable, gratis) VALUES ('${req.body.nombre}', '${req.body.direccion}, null, '${req.body.gratis}')`)
             .then(function(){
                 res.status(200)
                 .json({
@@ -491,7 +492,7 @@ function createSede(req, res, next) {
             });
     }
     else{
-        db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable) VALUES ('${req.body.nombre}', '${req.body.direccion}', '${req.body.responsable}')`)
+        db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable, gratis) VALUES ('${req.body.nombre}', '${req.body.direccion}', '${req.body.responsable}', '${req.body.gratis}')`)
             .then(function(){
                 res.status(200)
                 .json({
@@ -513,7 +514,7 @@ function updateSede(req, res, next) {
     }
 
     db.none(`
-    UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}', responsable=${req.body.responsable} WHERE id=${req.params.id};
+    UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}', responsable=${req.body.responsable}, gratis='${req.body.gratis}' WHERE id=${req.params.id};
     `)
     .then(function(){
         res.status(200)
@@ -567,17 +568,8 @@ function getTalleres(req, res, next) {
 
 function getTaller(req, res, next) {
     let taller = parseInt(req.params.id);
-    db.multi(`SELECT T.*, S.nombre as sedeDesc, S.direccion, S.id as idSede FROM "Talleres" T JOIN "Sedes" S ON T.sede = S.id WHERE T.id = ${taller}; SELECT COUNT(*) as inscritos FROM "Usuarios" WHERE idtaller = ${taller};`)
+    db.multi(`SELECT T.*, S.nombre as sedeDesc, S.direccion, S.id as idSede, S.gratis FROM "Talleres" T JOIN "Sedes" S ON T.sede = S.id WHERE T.id = ${taller}; SELECT COUNT(*) as inscritos FROM "Usuarios" WHERE idtaller = ${taller};`)
         .then(data => {
-            // data[0].map(function(x){
-            //     data[1].forEach(e => {
-            //         if (x.sede === e.id){
-            //             x['sedeDesc'] = e.nombre;
-            //             x['ubicacion'] = e.direccion;
-            //         }
-            //     });
-            //     return x;
-            // })
             res.status(200).json(data);
         })
         .catch(function (err) {
@@ -597,6 +589,29 @@ function getCorreosByTallerId(req, res, next) {
         res.status(500).send('Ha sucedido un error obteniendo la lista de correos correspondientes. Vuelva a intentar.');
         return next(err);
     });
+}
+
+function getCostos(req, res, next) {
+    db.one('SELECT escuela_privada, escuela_publica FROM "CostosTalleres"').then(function (data) {
+        res.status(200).json(data);
+    }).catch(function (err) {
+        return next(err);
+    });
+}
+
+function updateCostos(req, res, next) {
+    db.none(`UPDATE "CostosTalleres" SET escuela_publica='${req.body.escuela_publica}', escuela_privada=${req.body.escuela_privada}`)
+        .then(function () {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'Se han modificado los costos.'
+                });
+        })
+        .catch(function (err) {
+            res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+            return next(err);
+        })
 }
 
 function createTaller(req, res, next) {
@@ -939,6 +954,8 @@ module.exports = {
     getCorreosByTallerId: getCorreosByTallerId,
     getTalleres: getTalleres,
     getTaller: getTaller,
+    getCostos: getCostos,
+    updateCostos: updateCostos,
     createTaller: createTaller,
     updateTaller: updateTaller,
     removeTaller: removeTaller,
