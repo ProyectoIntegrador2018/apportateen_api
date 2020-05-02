@@ -591,9 +591,7 @@ function updateTaller(req, res, next) {
         stringPath = "{}"
     }
     
-    
-    // TODO: editar query con nuevas columnas, y front para estos datos al editar taller
-    // hora_inicio, hora_fin, fecha_inicio, fecha_fin, estado
+
     db.none(`UPDATE "Talleres" SET nombre='${req.body.nombre}', descripcion='${req.body.descripcion}', sede=${req.body.sede}, categoria=${req.body.categoria}, cupo= ${req.body.cupo},url_array='${string}',foto_path_array='${stringPath}', tutor='${req.body.tutor}',hora_inicio='${req.body.hora_inicio}', hora_fin='${req.body.hora_fin}',fecha_inicio='${req.body.fecha_inicio}',fecha_fin='${req.body.fecha_fin}',estado='${req.body.estado}' WHERE id=${req.params.id}`)
 
         .then(function () {
