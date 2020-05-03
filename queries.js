@@ -269,6 +269,59 @@ function removeUser(req, res, next) {
         })
 }
 
+
+function createInscripcion(req, res, next) {
+    let tallerId = parseInt(req.body.tallerId);
+    let userId = req.body.userId;
+    console.log("USER ID");
+    console.log(userId);
+
+    db.one(`SELECT gratis FROM "Talleres" T JOIN "Sedes" S on T.sede = S.id WHERE T.id = ${tallerId}`)
+        .then(function (data) {
+            console.log("gratis query 2");
+            console.log(data);
+            // db.one(`SELECT (SELECT escuela_tipo FROM "Usuarios" WHERE id = ${tallerId}) `)
+            if (!data["gratis"]) {
+                db.one(`SELECT escuela_tipo FROM "Usuarios" WHERE id = '${userId}'`)
+                .then(function (data) {
+                    console.log("escuela query");
+                    console.log(data);
+                    // if(data["escuela_tipo"] == "Privada"){
+
+                    // }else{
+
+                    // }
+                })
+                .catch(function (err) {
+                    console.log("error al obtener escuela")
+                    console.log(err)
+                    // res.status(500).send('Ha sucedido un error al ver el tipo de escuela del usuario.');
+                    // return next(err);
+                })
+            }else{
+                console.log("gratiissss");
+                db.none(`INSERT INTO "Inscripciones"(user_id, taller_id, comprobante, estatus, mensaje) VALUES ('${userId}', '${tallerId}', null , 'pendiente' , null)`)
+                .then(function () {
+                    res.status(200)
+                        .json({
+                            status: 'success',
+                            message: 'Tabla de inscripciones actualizada.'
+                        });
+                })
+                .catch(function (err) {
+                    res.status(500).send('Ha sucedido un error al insertar a la tabla de inscripciones.');
+                    return next(err);
+                })
+            }
+        })
+        .catch(function (err) {
+            console.log("error al obtener gratis")
+            console.log(err)
+            res.status(500).send('Ha sucedido un error al ver el costo del taller.');
+            return next(err);
+        })
+}
+
 function getAllSponsors(req, res, next) {
     db.any('SELECT * FROM "Patrocinadores"').then(function (data) {
         res.status(200).json(data);
@@ -383,6 +436,65 @@ function updateTutor(req, res, next) {
     })
 }
 
+function createResponsable(req, res, next) {
+    db.none(`INSERT INTO "Responsables"(NOMBRE_RESPONSABLE, CORREO_RESPONSABLE) VALUES ('${req.body.nombre_responsable}','${req.body.correo_responsable}')
+    ON CONFLICT(correo_responsable) DO NOTHING;`)
+        .then(function () {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'Se ha creado el responsable..'
+                });
+        })
+        .catch(function (err) {
+            res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+            return next(err);
+        });
+}
+
+function getIDResponsable(req, res, next) {
+    db.multi(`SELECT id_responsable FROM "Responsables" WHERE CORREO_RESPONSABLE = '${req.params.correo_responsable}'`)
+        .then(data => {
+            res.status(200).json(data[0][0]);
+        })
+        .catch(function (err) {
+            return next(err);
+        })
+}
+
+function updateResponsable(req, res, next) {
+    db.none(`
+    UPDATE "Responsables" SET nombre_responsable='${req.body.nombre_responsable}', correo_responsable='${req.body.correo_responsable}'  where id_responsable='${req.params.id}'
+    `)
+        .then(function () {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'Se ha modificado el responsable.'
+                });
+        })
+        .catch(function (err) {
+            res.status(500).send('Ha sucedido un error.');
+            return next(err);
+        })
+}
+
+function removeResponsable(req, res, next) {
+    var id_responsable = parseInt(req.params.id);
+    db.result(`DELETE FROM "Responsables" WHERE "id_responsable"=${id_responsable} AND "id_responsable" NOT IN (SELECT responsable FROM "Sedes" WHERE responsable IS NOT NULL)`)
+        .then(function () {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'Se elimino el responsable.'
+                });
+        })
+        .catch(function (err) {
+            res.status(500).send(err);
+            return next(err);
+        })
+}
+
 
 function getSedes(req, res, next) {
     db.multi(`SELECT * FROM "Sedes" ORDER BY nombre ASC; SELECT * FROM "Talleres"; 
@@ -417,34 +529,56 @@ function getSedes(req, res, next) {
 }
 
 function createSede(req, res, next) {
-    db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable, gratis) VALUES ('${req.body.nombre}', '${req.body.direccion}', null ,'${req.body.gratis}')`)
-    .then(function () {
-        res.status(200)
-            .json({
-                status: 'success',
-                message: 'Se ha creado la sede.'
+    if (req.body.responsable == null) {
+        db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable, gratis) VALUES ('${req.body.nombre}', '${req.body.direccion}, null, '${req.body.gratis}')`)
+            .then(function () {
+                res.status(200)
+                    .json({
+                        status: 'success',
+                        message: 'Se ha creado la sede.'
+                    });
+            })
+            .catch(function (err) {
+                res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+                return next(err);
             });
-    })
-    .catch(function (err) {
-        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-        return next(err);
-    })
-    
+    }
+    else {
+        db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable, gratis) VALUES ('${req.body.nombre}', '${req.body.direccion}', '${req.body.responsable}', '${req.body.gratis}')`)
+            .then(function () {
+                res.status(200)
+                    .json({
+                        status: 'success',
+                        message: 'Se ha creado la sede.'
+                    });
+            })
+            .catch(function (err) {
+                res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+                return next(err);
+            });
+    }
 }
 
 function updateSede(req, res, next) {
-    db.none(`UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}', gratis='${req.body.gratis}' WHERE id=${req.params.id}`)
-    .then(function () {
-        res.status(200)
-            .json({
-                status: 'success',
-                message: 'Se ha modificado la sede.'
-            });
-    })
-    .catch(function (err) {
-        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-        return next(err);
-    })
+    // Si el responsable no es null le agrega las comillas
+    if (req.body.responsable != null) {
+        req.body.responsable = `'${req.body.responsable}'`
+    }
+
+    db.none(`
+    UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}', responsable=${req.body.responsable}, gratis='${req.body.gratis}' WHERE id=${req.params.id};
+    `)
+        .then(function () {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'Se ha modificado la sede.'
+                });
+        })
+        .catch(function (err) {
+            res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+            return next(err);
+        })
 }
 
 
@@ -872,6 +1006,7 @@ module.exports = {
     createTaller: createTaller,
     updateTaller: updateTaller,
     removeTaller: removeTaller,
+    createInscripcion: createInscripcion,
     getAvisos: getAvisos,
     getAvisosForUser: getAvisosForUser,
     createAviso: createAviso,
@@ -893,7 +1028,10 @@ module.exports = {
     getUsersAdmn: getUsersAdmn,
     addUserAdmin: addUserAdmin,
     deleteUserAdmin: deleteUserAdmin,
-    updateUserNumConfPago: updateUserNumConfPago
-
+    updateUserNumConfPago: updateUserNumConfPago,
+    createResponsable: createResponsable,
+    getIDResponsable: getIDResponsable,
+    updateResponsable: updateResponsable,
+    removeResponsable: removeResponsable
 }
 
