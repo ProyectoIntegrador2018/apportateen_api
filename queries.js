@@ -273,51 +273,44 @@ function removeUser(req, res, next) {
 function createInscripcion(req, res, next) {
     let tallerId = parseInt(req.body.tallerId);
     let userId = req.body.userId;
-    console.log("USER ID");
-    console.log(userId);
+    var costo, estatus;
 
-    db.one(`SELECT gratis FROM "Talleres" T JOIN "Sedes" S on T.sede = S.id WHERE T.id = ${tallerId}`)
+    db.multi(`SELECT gratis FROM "Talleres" T JOIN "Sedes" S on T.sede = S.id WHERE T.id = ${tallerId}; SELECT escuela_tipo FROM "Usuarios" WHERE id = '${userId}'; SELECT escuela_privada, escuela_publica FROM "CostosTalleres";`)
         .then(function (data) {
-            console.log("gratis query 2");
-            console.log(data);
-            // db.one(`SELECT (SELECT escuela_tipo FROM "Usuarios" WHERE id = ${tallerId}) `)
-            if (!data["gratis"]) {
-                db.one(`SELECT escuela_tipo FROM "Usuarios" WHERE id = '${userId}'`)
-                .then(function (data) {
-                    console.log("escuela query");
-                    console.log(data);
-                    // if(data["escuela_tipo"] == "Privada"){
+            // console.log(data);
+            if (data[0][0]["gratis"]) {
+                costo = 0;
+            } else {
+                if (data[1][0]["escuela_tipo"] == "Privada") {
+                    costo = data[2][0]["escuela_privada"];
+                } else {
+                    costo = data[2][0]["escuela_publica"];
+                }
+            }
 
-                    // }else{
+            if(costo > 0 ){
+                estatus = "pendiente";
+            } else{
+                estatus = "aceptado";
+            }
 
-                    // }
-                })
-                .catch(function (err) {
-                    console.log("error al obtener escuela")
-                    console.log(err)
-                    // res.status(500).send('Ha sucedido un error al ver el tipo de escuela del usuario.');
-                    // return next(err);
-                })
-            }else{
-                console.log("gratiissss");
-                db.none(`INSERT INTO "Inscripciones"(user_id, taller_id, comprobante, estatus, mensaje) VALUES ('${userId}', '${tallerId}', null , 'pendiente' , null)`)
+            db.none(`INSERT INTO "Inscripciones"(user_id, taller_id, comprobante, estatus, mensaje) VALUES ('${userId}', '${tallerId}', null , '${estatus}' , null)`)
                 .then(function () {
                     res.status(200)
                         .json({
                             status: 'success',
-                            message: 'Tabla de inscripciones actualizada.'
+                            message: 'Se ha inscrito el taller.'
                         });
                 })
                 .catch(function (err) {
-                    res.status(500).send('Ha sucedido un error al insertar a la tabla de inscripciones.');
+                    res.status(500).send('Ha sucedido un error al inscribir el taller. Intente de nuevo más tarde.');
                     return next(err);
                 })
-            }
         })
         .catch(function (err) {
-            console.log("error al obtener gratis")
-            console.log(err)
-            res.status(500).send('Ha sucedido un error al ver el costo del taller.');
+            // console.log("error al obtener gratis")
+            // console.log(err)
+            res.status(500).send('Ha sucedido un error al inscribir el taller. Intente de nuevo más tarde.');
             return next(err);
         })
 }
