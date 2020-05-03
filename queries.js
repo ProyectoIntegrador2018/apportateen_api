@@ -262,6 +262,59 @@ function removeUser(req, res, next) {
         })
 }
 
+
+function createInscripcion(req, res, next) {
+    let tallerId = parseInt(req.body.tallerId);
+    let userId = req.body.userId;
+    console.log("USER ID");
+    console.log(userId);
+
+    db.one(`SELECT gratis FROM "Talleres" T JOIN "Sedes" S on T.sede = S.id WHERE T.id = ${tallerId}`)
+        .then(function (data) {
+            console.log("gratis query 2");
+            console.log(data);
+            // db.one(`SELECT (SELECT escuela_tipo FROM "Usuarios" WHERE id = ${tallerId}) `)
+            if (!data["gratis"]) {
+                db.one(`SELECT escuela_tipo FROM "Usuarios" WHERE id = '${userId}'`)
+                .then(function (data) {
+                    console.log("escuela query");
+                    console.log(data);
+                    // if(data["escuela_tipo"] == "Privada"){
+
+                    // }else{
+
+                    // }
+                })
+                .catch(function (err) {
+                    console.log("error al obtener escuela")
+                    console.log(err)
+                    // res.status(500).send('Ha sucedido un error al ver el tipo de escuela del usuario.');
+                    // return next(err);
+                })
+            }else{
+                console.log("gratiissss");
+                db.none(`INSERT INTO "Inscripciones"(user_id, taller_id, comprobante, estatus, mensaje) VALUES ('${userId}', '${tallerId}', null , 'pendiente' , null)`)
+                .then(function () {
+                    res.status(200)
+                        .json({
+                            status: 'success',
+                            message: 'Tabla de inscripciones actualizada.'
+                        });
+                })
+                .catch(function (err) {
+                    res.status(500).send('Ha sucedido un error al insertar a la tabla de inscripciones.');
+                    return next(err);
+                })
+            }
+        })
+        .catch(function (err) {
+            console.log("error al obtener gratis")
+            console.log(err)
+            res.status(500).send('Ha sucedido un error al ver el costo del taller.');
+            return next(err);
+        })
+}
+
 function getAllSponsors(req, res, next) {
     db.any('SELECT * FROM "Patrocinadores"').then(function(data){
         res.status(200).json(data);
@@ -319,6 +372,7 @@ function createGuardian(req, res, next){
     console.log(req.body);
     db.none(`INSERT INTO "Tutores"(nombre, correo, telefono, asignacion) 
     VALUES ('${req.body.nombre}', '${req.body.correo}', '${req.body.telefono}', '${req.body.asignacion}')`)
+<<<<<<< HEAD
     .then(function(){
         res.status(200)
         .json({
@@ -410,6 +464,209 @@ function removeSede(req, res, next) {
         res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
         return next(err);
     })
+=======
+        .then(function () {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'Se ha creado el tutor.'
+                });
+        })
+        .catch(function (err) {
+            res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+            return next(err);
+        })
+}
+function agregaTutor(req, res, next) {
+    console.log(req.body);
+    db.one(`INSERT INTO "Tutores"(nombre_tutor, correo_tutor, telefono_tutor) 
+    VALUES ('${req.body.nombre_tutor}', '${req.body.correo_tutor}','${req.body.telefono_tutor}')  ON CONFLICT(correo_tutor) DO NOTHING RETURNING id_tutor;`)
+        .then(function (data) {
+            console.log("AGREGA TUTOR:")
+            console.log(data)
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'Se ha agregado el tutor..',
+                    data: data
+                });
+        })
+        .catch(function (err) {
+            console.log("error :(")
+            console.log(err)
+            res.status(500).send('Ha sucedido un error al crear tutor. Vuelva a intentar.');
+            return next(err);
+        })
+}
+
+function getTutor(req, res, next) {
+    db.multi(`SELECT * FROM "Tutores" WHERE id_tutor = '${req.params.id_tutor}'`).then(data => {
+        res.status(200).json(data[0][0]);
+    })
+        .catch(function (err) {
+            return next(err);
+        })
+}
+
+function updateTutor(req, res, next) {
+    db.none(`UPDATE "Tutores" SET nombre_tutor = '${req.body.nombre_tutor}', correo_tutor = '${req.body.correo_tutor}', telefono_tutor = '${req.body.telefono_tutor}' WHERE id_tutor = '${req.params.id_tutor}'`).then(() => {
+        res.status(200)
+            .json({
+                status: 'success',
+                message: 'Se ha actualizado la información del tutor.'
+            })
+            .catch(function (err) {
+                res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+                return next(err);
+            })
+    })
+}
+
+function createResponsable(req, res, next) {
+    db.none(`INSERT INTO "Responsables"(NOMBRE_RESPONSABLE, CORREO_RESPONSABLE) VALUES ('${req.body.nombre_responsable}','${req.body.correo_responsable}')
+    ON CONFLICT(correo_responsable) DO NOTHING;`)
+        .then(function () {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'Se ha creado el responsable..'
+                });
+        })
+        .catch(function (err) {
+            res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+            return next(err);
+        });
+}
+
+function getIDResponsable(req, res, next) {
+    db.multi(`SELECT id_responsable FROM "Responsables" WHERE CORREO_RESPONSABLE = '${req.params.correo_responsable}'`)
+        .then(data => {
+            res.status(200).json(data[0][0]);
+        })
+        .catch(function (err) {
+            return next(err);
+        })
+}
+
+function updateResponsable(req, res, next) {
+    db.none(`
+    UPDATE "Responsables" SET nombre_responsable='${req.body.nombre_responsable}', correo_responsable='${req.body.correo_responsable}'  where id_responsable='${req.params.id}'
+    `)
+        .then(function () {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'Se ha modificado el responsable.'
+                });
+        })
+        .catch(function (err) {
+            res.status(500).send('Ha sucedido un error.');
+            return next(err);
+        })
+}
+
+function removeResponsable(req, res, next) {
+    var id_responsable = parseInt(req.params.id);
+    db.result(`DELETE FROM "Responsables" WHERE "id_responsable"=${id_responsable} AND "id_responsable" NOT IN (SELECT responsable FROM "Sedes" WHERE responsable IS NOT NULL)`)
+        .then(function () {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'Se elimino el responsable.'
+                });
+        })
+        .catch(function (err) {
+            res.status(500).send(err);
+            return next(err);
+        })
+}
+
+
+function getSedes(req, res, next) {
+    db.multi(`SELECT * FROM "Sedes" LEFT JOIN "Responsables" R on "Sedes".responsable = R.id_responsable ORDER BY "Sedes".nombre ASC; SELECT * FROM "Talleres"; 
+    SELECT COUNT(*) as inscritos, idtaller FROM "Usuarios" GROUP BY idtaller;`)
+        .then(data => {
+            data[1].forEach(el => {
+                var registro = true;
+                data[2].forEach(x => {
+                    if (x.idtaller == el.id) {
+                        el['inscritos'] = x.inscritos;
+                        registro = false;
+                    }
+                })
+                if (registro) {
+                    el['inscritos'] = 0;
+                }
+            });
+            data[0].forEach(element => {
+                var talleres = [];
+                data[1].forEach(el => {
+                    if (element.id === el.sede)
+                        talleres.push(el);
+                });
+                element['talleres'] = talleres;
+                talleres = [];
+            });
+            res.status(200).json(data[0]);
+        })
+        .catch(function (err) {
+            return next(err);
+        })
+
+}
+
+function createSede(req, res, next) {
+    if (req.body.responsable == null) {
+        db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable, gratis) VALUES ('${req.body.nombre}', '${req.body.direccion}, null, '${req.body.gratis}')`)
+            .then(function () {
+                res.status(200)
+                    .json({
+                        status: 'success',
+                        message: 'Se ha creado la sede.'
+                    });
+            })
+            .catch(function (err) {
+                res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+                return next(err);
+            });
+    }
+    else {
+        db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable, gratis) VALUES ('${req.body.nombre}', '${req.body.direccion}', '${req.body.responsable}', '${req.body.gratis}')`)
+            .then(function () {
+                res.status(200)
+                    .json({
+                        status: 'success',
+                        message: 'Se ha creado la sede.'
+                    });
+            })
+            .catch(function (err) {
+                res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+                return next(err);
+            });
+    }
+}
+
+function updateSede(req, res, next) {
+    // Si el responsable no es null le agrega las comillas
+    if (req.body.responsable != null) {
+        req.body.responsable = `'${req.body.responsable}'`
+    }
+
+    db.none(`
+    UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}', responsable=${req.body.responsable}, gratis='${req.body.gratis}' WHERE id=${req.params.id};
+    `)
+        .then(function () {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'Se ha modificado la sede.'
+                });
+        })
+        .catch(function (err) {
+            res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+            return next(err);
+        })
+>>>>>>> 324365d... post tabla de inscripciones jala si es taller gratis
 }
 
 function getTalleres(req, res, next) {
@@ -754,6 +1011,7 @@ module.exports = {
     createTaller: createTaller,
     updateTaller: updateTaller,
     removeTaller: removeTaller,
+    createInscripcion: createInscripcion,
     getAvisos: getAvisos,
     getAvisosForUser: getAvisosForUser,
     createAviso: createAviso,
@@ -765,6 +1023,7 @@ module.exports = {
     removeCategoria: removeCategoria,
     getEstatusConvocatorias: getEstatusConvocatorias,
     updateEstatusConvocatorias: updateEstatusConvocatorias,
+<<<<<<< HEAD
     updateUserComplete : updateUserComplete,
     getArchivosAdmn : getArchivosAdmn,
     createArchivoAdmn : createArchivoAdmn,
@@ -776,5 +1035,22 @@ module.exports = {
     addUserAdmin : addUserAdmin,
     deleteUserAdmin : deleteUserAdmin,
     updateUserNumConfPago : updateUserNumConfPago
+=======
+    updateUserComplete: updateUserComplete,
+    getArchivosAdmn: getArchivosAdmn,
+    createArchivoAdmn: createArchivoAdmn,
+    deleteArchivoAdmn: deleteArchivoAdmn,
+    getArchivoUser: getArchivoUser,
+    getArchivoAdminByUsers: getArchivoAdminByUsers,
+    getUsersUsuarios: getUsersUsuarios,
+    getUsersAdmn: getUsersAdmn,
+    addUserAdmin: addUserAdmin,
+    deleteUserAdmin: deleteUserAdmin,
+    updateUserNumConfPago: updateUserNumConfPago,
+    createResponsable: createResponsable,
+    getIDResponsable: getIDResponsable,
+    updateResponsable: updateResponsable,
+    removeResponsable: removeResponsable
+>>>>>>> 324365d... post tabla de inscripciones jala si es taller gratis
 }
 
