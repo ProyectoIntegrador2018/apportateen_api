@@ -4,7 +4,7 @@ var db = require('../queries');
 
 
 router.post('/', db.createInscripcion);
-router.post('/delete', db.removeInscripcion);
+router.delete('/:taller_id/:user_id', db.removeInscripcion);
 
 
 module.exports = router;
