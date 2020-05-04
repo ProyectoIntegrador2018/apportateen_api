@@ -315,6 +315,21 @@ function createInscripcion(req, res, next) {
         })
 }
 
+function removeInscripcion(req,res,next){
+    db.result(`DELETE FROM "Inscripciones" WHERE user_id='${req.body.user_id}' AND taller_id=${req.body.taller_id}`)
+    .then(function () {
+        res.status(200)
+            .json({
+                status: 'success',
+                message: 'Se eliminó la inscripcion.'
+            });
+    })
+    .catch(function (err) {
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    })
+}
+
 function getAllSponsors(req, res, next) {
     db.any('SELECT * FROM "Patrocinadores"').then(function (data) {
         res.status(200).json(data);
@@ -1000,6 +1015,7 @@ module.exports = {
     updateTaller: updateTaller,
     removeTaller: removeTaller,
     createInscripcion: createInscripcion,
+    removeInscripcion: removeInscripcion,
     getAvisos: getAvisos,
     getAvisosForUser: getAvisosForUser,
     createAviso: createAviso,
