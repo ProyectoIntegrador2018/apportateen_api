@@ -594,7 +594,7 @@ function updateSede(req, res, next) {
                     message: 'Se ha creado la sede.'
                 });
             })
-            .catch(function(err){
+            .catch(function (err) {
                 res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
                 return next(err);
             });
@@ -603,24 +603,24 @@ function updateSede(req, res, next) {
 
 function updateSede(req, res, next) {
     // Si el responsable no es null le agrega las comillas
-    if (req.body.responsable != null){
+    if (req.body.responsable != null) {
         req.body.responsable = `'${req.body.responsable}'`
     }
 
     db.none(`
     UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}', responsable=${req.body.responsable} WHERE id=${req.params.id};
     `)
-    .then(function(){
-        res.status(200)
-        .json({
-            status: 'success',
-            message: 'Se ha modificado la sede.'
-        });
-    })
-    .catch(function(err){
-        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-        return next(err);
-    })
+        .then(function () {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'Se ha modificado la sede.'
+                });
+        })
+        .catch(function (err) {
+            res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+            return next(err);
+        })
 }
 
 
@@ -879,8 +879,21 @@ function getAvisosForUser(req, res, next) {
 }
 
 function createAviso(req, res, next) {
-    db.none(`INSERT INTO "Avisos"(titulo, mensaje, taller) 
-    VALUES ('${req.body.titulo}', '${req.body.mensaje}',  ${req.body.idtaller})`)
+    if (req.body.global) {
+        db.none(`INSERT INTO "Avisos"(titulo, mensaje, general) VALUES ('${req.body.titulo}', '${req.body.mensaje}', TRUE)`)
+            .then(function () {
+                res.status(200)
+                    .json({
+                        status: 'success',
+                        message: 'Se ha creado el aviso.'
+                    });
+            })
+            .catch(function (err) {
+                res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+                return next(err);
+            })
+    } else if (req.body.talleres != null && req.body.sedes == null) {
+        db.none(`INSERT INTO "Avisos"(titulo, mensaje, taller) VALUES ('${req.body.titulo}', '${req.body.mensaje}', ARRAY [${req.body.talleres}])`)
         .then(function () {
             res.status(200)
                 .json({
@@ -892,6 +905,23 @@ function createAviso(req, res, next) {
             res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
             return next(err);
         })
+    } else if (req.body.talleres == null && req.body.sedes != null) {
+        db.none(`INSERT INTO "Avisos"(titulo, mensaje, sede) VALUES ('${req.body.titulo}', '${req.body.mensaje}', ARRAY [${req.body.sedes}])`)
+        .then(function () {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'Se ha creado el aviso.'
+                });
+        })
+        .catch(function (err) {
+            res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+            return next(err);
+        })
+    } else {
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    }
 }
 
 function updateAviso(req, res, next) {
