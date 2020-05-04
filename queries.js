@@ -316,7 +316,7 @@ function createInscripcion(req, res, next) {
 }
 
 function removeInscripcion(req,res,next){
-    db.result(`DELETE FROM "Inscripciones" WHERE user_id='${req.body.user_id}' AND taller_id=${req.body.taller_id}`)
+    db.result(`DELETE FROM "Inscripciones" WHERE user_id='${req.params.user_id}' AND taller_id=${req.params.taller_id}`)
     .then(function () {
         res.status(200)
             .json({
