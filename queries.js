@@ -830,23 +830,15 @@ function removeTaller(req, res, next) {
 
 
 function getAvisos(req, res, next) {
-    db.multi('SELECT * FROM "Avisos"; SELECT * FROM "Talleres"')
-        .then(data => {
-            var result = data[0].map(function (x) {
-                if (x.taller == 0) {
-                    x['taller'] = "Aviso público general"
-                    x['idtaller'] = 0;
-                } else {
-                    data[1].forEach(e => {
-                        if (e.id == x.taller) {
-                            x['idtaller'] = e.id;
-                            x['taller'] = e.nombre;
-                        }
-                    });
-                }
-                return x;
-            })
-            res.status(200).json(result);
+    db.multi(`
+    SELECT "Avisos".id,"Avisos".sede,"Avisos".taller,"Avisos".general,"Avisos".titulo,"Avisos".mensaje, array_agg("Talleres".nombre) as NombreTalleres, null as NombreSedes FROM "Avisos" LEFT JOIN "Talleres" ON "Talleres".id = ANY("Avisos".taller) WHERE "Avisos".taller NOTNULL GROUP BY "Avisos".id
+    UNION
+    SELECT "Avisos".id,"Avisos".sede,"Avisos".taller,"Avisos".general,"Avisos".titulo,"Avisos".mensaje, cast(null as text[]) as NombreTalleres, array_agg("Sedes".nombre) as NombreSedes FROM "Avisos" LEFT JOIN  "Sedes" ON "Sedes".id = ANY("Avisos".sede)  WHERE "Avisos".sede NOTNULL GROUP BY "Avisos".id
+    UNION
+    SELECT "Avisos".id,"Avisos".sede,"Avisos".taller,"Avisos".general,"Avisos".titulo,"Avisos".mensaje, cast(null as text[]) as NombreTalleres, cast(null as text[]) as NombreSedes FROM "Avisos" WHERE "Avisos".general = true GROUP BY "Avisos".id;
+    `)
+        .then(result => {
+            res.status(200).json(result[0]);
         })
         .catch(function (err) {
             return next(err);
@@ -894,30 +886,30 @@ function createAviso(req, res, next) {
             })
     } else if (req.body.talleres != null && req.body.sedes == null) {
         db.none(`INSERT INTO "Avisos"(titulo, mensaje, taller) VALUES ('${req.body.titulo}', '${req.body.mensaje}', ARRAY [${req.body.talleres}])`)
-        .then(function () {
-            res.status(200)
-                .json({
-                    status: 'success',
-                    message: 'Se ha creado el aviso.'
-                });
-        })
-        .catch(function (err) {
-            res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-            return next(err);
-        })
+            .then(function () {
+                res.status(200)
+                    .json({
+                        status: 'success',
+                        message: 'Se ha creado el aviso.'
+                    });
+            })
+            .catch(function (err) {
+                res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+                return next(err);
+            })
     } else if (req.body.talleres == null && req.body.sedes != null) {
         db.none(`INSERT INTO "Avisos"(titulo, mensaje, sede) VALUES ('${req.body.titulo}', '${req.body.mensaje}', ARRAY [${req.body.sedes}])`)
-        .then(function () {
-            res.status(200)
-                .json({
-                    status: 'success',
-                    message: 'Se ha creado el aviso.'
-                });
-        })
-        .catch(function (err) {
-            res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-            return next(err);
-        })
+            .then(function () {
+                res.status(200)
+                    .json({
+                        status: 'success',
+                        message: 'Se ha creado el aviso.'
+                    });
+            })
+            .catch(function (err) {
+                res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+                return next(err);
+            })
     } else {
         res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
         return next(err);
