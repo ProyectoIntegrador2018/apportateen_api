@@ -391,7 +391,6 @@ function createGuardian(req, res, next){
     console.log(req.body);
     db.none(`INSERT INTO "Tutores"(nombre, correo, telefono, asignacion) 
     VALUES ('${req.body.nombre}', '${req.body.correo}', '${req.body.telefono}', '${req.body.asignacion}')`)
-<<<<<<< HEAD
     .then(function(){
         res.status(200)
         .json({
@@ -405,68 +404,6 @@ function createGuardian(req, res, next){
     })
 }
 
-
-function getSedes(req, res, next) {
-    db.multi(`SELECT * FROM "Sedes" ORDER BY nombre ASC; SELECT * FROM "Talleres"; 
-    SELECT COUNT(*) as inscritos, idtaller FROM "Usuarios" GROUP BY idtaller;`)
-    .then(data => {
-        data[1].forEach(el => {
-            var registro = true;
-            data[2].forEach(x => {
-                if (x.idtaller == el.id){
-                    el['inscritos'] = x.inscritos;
-                    registro = false;
-                }
-            })
-            if (registro){
-                el['inscritos'] = 0;
-            }
-        });
-        data[0].forEach(element => {
-            var talleres = [];
-            data[1].forEach(el => {
-                if (element.id === el.sede)
-                    talleres.push(el);
-            });
-            element['talleres'] = talleres;
-            talleres = [];
-        });
-        res.status(200).json(data[0]);
-    })
-    .catch(function (err){
-        return next(err);
-    })
-}
-
-function createSede(req, res, next) {
-    db.none(`INSERT INTO "Sedes"(nombre, direccion, gratis) VALUES ('${req.body.nombre}', '${req.body.direccion}', '${req.body.gratis}')`)
-    .then(function(){
-        res.status(200)
-        .json({
-            status: 'success',
-            message: 'Se ha creado la sede.'
-        });
-    })
-    .catch(function(err){
-        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-        return next(err);
-    });
-}
-
-function updateSede(req, res, next) {
-    db.none(`UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}', gratis='${req.body.gratis}' WHERE id=${req.params.id}`)
-    .then(function(){
-        res.status(200)
-        .json({
-            status: 'success',
-            message: 'Se ha modificado la sede.'
-        });
-    })
-    .catch(function(err){
-        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-        return next(err);
-    })
-}
 
 
 function removeSede(req, res, next) {
@@ -483,7 +420,6 @@ function removeSede(req, res, next) {
         res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
         return next(err);
     })
-=======
         .then(function () {
             res.status(200)
                 .json({
@@ -685,7 +621,6 @@ function updateSede(req, res, next) {
             res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
             return next(err);
         })
->>>>>>> 324365d... post tabla de inscripciones jala si es taller gratis
 }
 
 function getTalleres(req, res, next) {
@@ -1044,19 +979,6 @@ module.exports = {
     removeCategoria: removeCategoria,
     getEstatusConvocatorias: getEstatusConvocatorias,
     updateEstatusConvocatorias: updateEstatusConvocatorias,
-<<<<<<< HEAD
-    updateUserComplete : updateUserComplete,
-    getArchivosAdmn : getArchivosAdmn,
-    createArchivoAdmn : createArchivoAdmn,
-    deleteArchivoAdmn : deleteArchivoAdmn,
-    getArchivoUser : getArchivoUser,
-    getArchivoAdminByUsers : getArchivoAdminByUsers,
-    getUsersUsuarios : getUsersUsuarios,
-    getUsersAdmn : getUsersAdmn,
-    addUserAdmin : addUserAdmin,
-    deleteUserAdmin : deleteUserAdmin,
-    updateUserNumConfPago : updateUserNumConfPago
-=======
     updateUserComplete: updateUserComplete,
     getArchivosAdmn: getArchivosAdmn,
     createArchivoAdmn: createArchivoAdmn,
@@ -1072,6 +994,5 @@ module.exports = {
     getIDResponsable: getIDResponsable,
     updateResponsable: updateResponsable,
     removeResponsable: removeResponsable
->>>>>>> 324365d... post tabla de inscripciones jala si es taller gratis
 }
 
