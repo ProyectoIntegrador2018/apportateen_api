@@ -430,8 +430,6 @@ function getTalleres(req, res, next) {
     })
 }
 
-<<<<<<< HEAD
-=======
 
 function getTaller(req, res, next) {
     let taller = parseInt(req.params.id);
@@ -444,7 +442,6 @@ function getTaller(req, res, next) {
     })
 }
 
->>>>>>> d151ecf... queries para establecer el costo de los talleres
 function getCorreosByTallerId(req, res, next) {
     let query = 'SELECT correo FROM "Usuarios" where id NOT IN (SELECT uid FROM "Admins")';
     let taller = parseInt(req.params.id);
@@ -751,12 +748,9 @@ module.exports = {
     removeSede: removeSede,
     getCorreosByTallerId:getCorreosByTallerId,
     getTalleres: getTalleres,
-<<<<<<< HEAD
-=======
     getTaller: getTaller,
     getCostos: getCostos,
     updateCostos: updateCostos,
->>>>>>> d151ecf... queries para establecer el costo de los talleres
     createTaller: createTaller,
     updateTaller: updateTaller,
     removeTaller: removeTaller,
@@ -781,12 +775,6 @@ module.exports = {
     getUsersAdmn : getUsersAdmn,
     addUserAdmin : addUserAdmin,
     deleteUserAdmin : deleteUserAdmin,
-<<<<<<< HEAD
     updateUserNumConfPago : updateUserNumConfPago
-=======
-    updateUserNumConfPago : updateUserNumConfPago,
-    // createResponsable: createResponsable,
-    // getIDResponsable: getIDResponsable,
->>>>>>> d151ecf... queries para establecer el costo de los talleres
 }
 
