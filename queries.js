@@ -323,6 +323,17 @@ function removeInscripcion(req,res,next){
     })
 }
 
+//JOIN "Sedes" S ON T.sede = S.id
+function getTalleresInscritos(req, res, next) {
+    console.log(req.params.user_id);
+    db.any(`SELECT * FROM (("Inscripciones" I JOIN "Talleres" T ON I.taller_id = T.id) JOIN "Sedes" S ON T.sede = S.id) WHERE I.user_id='${req.params.user_id}'`).then(function (data) {
+        res.status(200).json(data);
+    }).catch(function (err) {
+        console.log("ERROR QUERY");
+        return next(err);
+    });
+}
+
 function getAllSponsors(req, res, next) {
     db.any('SELECT * FROM "Patrocinadores"').then(function(data){
         res.status(200).json(data);
@@ -1021,6 +1032,7 @@ module.exports = {
     removeTaller: removeTaller,
     createInscripcion: createInscripcion,
     removeInscripcion: removeInscripcion,
+    getTalleresInscritos: getTalleresInscritos,
     getAvisos: getAvisos,
     getAvisosForUser: getAvisosForUser,
     createAviso: createAviso,
