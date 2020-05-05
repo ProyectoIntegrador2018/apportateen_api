@@ -545,7 +545,6 @@ function createTaller(req, res, next) {
         stringPath = "{}"
     }
 
-    // TODO: editar query con nuevas columnas, y front para estos datos al crear taller
     db.none(`INSERT INTO "Talleres"(nombre, descripcion, sede, categoria, cupo, url_array, foto_path_array,tutor, hora_inicio, hora_fin, fecha_inicio, fecha_fin, estado) 
     VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, 9, ${req.body.cupo}, '${string}', '${stringPath}','${req.body.tutor}','${req.body.hora_inicio}','${req.body.hora_fin}','${req.body.fecha_inicio}','${req.body.fecha_fin}','${req.body.estado}')`)
         .then(function () {
