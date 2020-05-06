@@ -608,17 +608,32 @@ function updateTaller(req, res, next) {
 
 function removeTaller(req, res, next) {
     var sedeId = parseInt(req.params.id);
-    db.result(`DELETE FROM "Talleres" WHERE id=${sedeId}`)
-        .then(function () {
-            res.status(200)
-                .json({
-                    status: 'success',
-                    message: 'Se eliminó el taller.'
-                });
+    console.log("Trying to delete: ")
+    console.log(req.params.id)
+    db.result(`DELETE FROM "Talleres" WHERE id=${sedeId} RETURNING tutor`)
+        .then(function (data) {
+            console.log("Trying to delete following tutor:")
+            console.log(data.rows[0].tutor)
+            db.result(`DELETE FROM "Tutores" WHERE id_tutor=${data.rows[0].tutor}`)
+                .then(function () {
+                    res.status(200)
+                        .json({
+                            status: 'success',
+                            message: 'Se eliminó el taller.'
+                        });
+                })
+                .catch(function (err) {
+                    res.status(200)
+                        .json({
+                            status: 'success',
+                            message: 'Se eliminó el taller.'
+                        });
+                })
         })
         .catch(function (err) {
+            console.log(err)
+
             res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-            return next(err);
         })
 }
 
