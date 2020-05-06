@@ -269,6 +269,78 @@ function removeUser(req, res, next) {
         })
 }
 
+
+function createInscripcion(req, res, next) {
+    let tallerId = parseInt(req.body.tallerId);
+    let userId = req.body.userId;
+    var costo, estatus;
+
+    db.multi(`SELECT gratis FROM "Talleres" T JOIN "Sedes" S on T.sede = S.id WHERE T.id = ${tallerId}; SELECT escuela_tipo FROM "Usuarios" WHERE id = '${userId}'; SELECT escuela_privada, escuela_publica FROM "CostosTalleres";`)
+        .then(function (data) {
+            // console.log(data);
+            if (data[0][0]["gratis"]) {
+                costo = 0;
+            } else {
+                if (data[1][0]["escuela_tipo"] == "Privada") {
+                    costo = data[2][0]["escuela_privada"];
+                } else {
+                    costo = data[2][0]["escuela_publica"];
+                }
+            }
+
+            if(costo > 0 ){
+                estatus = "pendiente";
+            } else{
+                estatus = "aceptado";
+            }
+
+            db.none(`INSERT INTO "Inscripciones"(user_id, taller_id, comprobante, estatus, mensaje) VALUES ('${userId}', '${tallerId}', null , '${estatus}' , null)`)
+                .then(function () {
+                    res.status(200)
+                        .json({
+                            status: 'success',
+                            message: 'Se ha inscrito el taller.'
+                        });
+                })
+                .catch(function (err) {
+                    res.status(500).send('Ha sucedido un error al inscribir el taller. Intente de nuevo más tarde.');
+                    return next(err);
+                })
+        })
+        .catch(function (err) {
+            // console.log("error al obtener gratis")
+            // console.log(err)
+            res.status(500).send('Ha sucedido un error al inscribir el taller. Intente de nuevo más tarde.');
+            return next(err);
+        })
+}
+
+function removeInscripcion(req,res,next){
+    db.result(`DELETE FROM "Inscripciones" WHERE user_id='${req.params.user_id}' AND taller_id=${req.params.taller_id}`)
+    .then(function () {
+        res.status(200)
+            .json({
+                status: 'success',
+                message: 'Se eliminó la inscripcion.'
+            });
+    })
+    .catch(function (err) {
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    })
+}
+
+//JOIN "Sedes" S ON T.sede = S.id
+function getTalleresInscritos(req, res, next) {
+    console.log(req.params.user_id);
+    db.any(`SELECT * FROM (("Inscripciones" I JOIN "Talleres" T ON I.taller_id = T.id) JOIN "Sedes" S ON T.sede = S.id) WHERE I.user_id='${req.params.user_id}'`).then(function (data) {
+        res.status(200).json(data);
+    }).catch(function (err) {
+        console.log("ERROR QUERY");
+        return next(err);
+    });
+}
+
 function getAllSponsors(req, res, next) {
     db.any('SELECT * FROM "Patrocinadores"').then(function (data) {
         res.status(200).json(data);
@@ -383,6 +455,65 @@ function updateTutor(req, res, next) {
     })
 }
 
+function createResponsable(req, res, next) {
+    db.none(`INSERT INTO "Responsables"(NOMBRE_RESPONSABLE, CORREO_RESPONSABLE) VALUES ('${req.body.nombre_responsable}','${req.body.correo_responsable}')
+    ON CONFLICT(correo_responsable) DO NOTHING;`)
+        .then(function () {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'Se ha creado el responsable..'
+                });
+        })
+        .catch(function (err) {
+            res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+            return next(err);
+        });
+}
+
+function getIDResponsable(req, res, next) {
+    db.multi(`SELECT id_responsable FROM "Responsables" WHERE CORREO_RESPONSABLE = '${req.params.correo_responsable}'`)
+        .then(data => {
+            res.status(200).json(data[0][0]);
+        })
+        .catch(function (err) {
+            return next(err);
+        })
+}
+
+function updateResponsable(req, res, next) {
+    db.none(`
+    UPDATE "Responsables" SET nombre_responsable='${req.body.nombre_responsable}', correo_responsable='${req.body.correo_responsable}'  where id_responsable='${req.params.id}'
+    `)
+        .then(function () {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'Se ha modificado el responsable.'
+                });
+        })
+        .catch(function (err) {
+            res.status(500).send('Ha sucedido un error.');
+            return next(err);
+        })
+}
+
+function removeResponsable(req, res, next) {
+    var id_responsable = parseInt(req.params.id);
+    db.result(`DELETE FROM "Responsables" WHERE "id_responsable"=${id_responsable} AND "id_responsable" NOT IN (SELECT responsable FROM "Sedes" WHERE responsable IS NOT NULL)`)
+        .then(function () {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'Se elimino el responsable.'
+                });
+        })
+        .catch(function (err) {
+            res.status(500).send(err);
+            return next(err);
+        })
+}
+
 
 function getSedes(req, res, next) {
     db.multi(`SELECT * FROM "Sedes" ORDER BY nombre ASC; SELECT * FROM "Talleres"; 
@@ -417,22 +548,45 @@ function getSedes(req, res, next) {
 }
 
 function createSede(req, res, next) {
-    db.none(`INSERT INTO "Sedes"(nombre, direccion) VALUES ('${req.body.nombre}', '${req.body.direccion}')`)
-        .then(function () {
-            res.status(200)
-                .json({
-                    status: 'success',
-                    message: 'Se ha creado la sede.'
-                });
-        })
-        .catch(function (err) {
-            res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-            return next(err);
-        });
+    if (req.body.responsable == null) {
+        db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable, gratis) VALUES ('${req.body.nombre}', '${req.body.direccion}, null, '${req.body.gratis}')`)
+            .then(function () {
+                res.status(200)
+                    .json({
+                        status: 'success',
+                        message: 'Se ha creado la sede.'
+                    });
+            })
+            .catch(function (err) {
+                res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+                return next(err);
+            });
+    }
+    else {
+        db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable, gratis) VALUES ('${req.body.nombre}', '${req.body.direccion}', '${req.body.responsable}', '${req.body.gratis}')`)
+            .then(function () {
+                res.status(200)
+                    .json({
+                        status: 'success',
+                        message: 'Se ha creado la sede.'
+                    });
+            })
+            .catch(function (err) {
+                res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+                return next(err);
+            });
+    }
 }
 
 function updateSede(req, res, next) {
-    db.none(`UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}' WHERE id=${req.params.id}`)
+    // Si el responsable no es null le agrega las comillas
+    if (req.body.responsable != null) {
+        req.body.responsable = `'${req.body.responsable}'`
+    }
+
+    db.none(`
+    UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}', responsable=${req.body.responsable}, gratis='${req.body.gratis}' WHERE id=${req.params.id};
+    `)
         .then(function () {
             res.status(200)
                 .json({
@@ -485,22 +639,13 @@ function getTalleres(req, res, next) {
 
 function getTaller(req, res, next) {
     let taller = parseInt(req.params.id);
-    db.multi(`SELECT T.*, S.nombre as sedeDesc, S.direccion, S.id as idSede FROM "Talleres" T JOIN "Sedes" S ON T.sede = S.id WHERE T.id = ${taller}; SELECT COUNT(*) as inscritos FROM "Usuarios" WHERE idtaller = ${taller};`)
-        .then(data => {
-            // data[0].map(function(x){
-            //     data[1].forEach(e => {
-            //         if (x.sede === e.id){
-            //             x['sedeDesc'] = e.nombre;
-            //             x['ubicacion'] = e.direccion;
-            //         }
-            //     });
-            //     return x;
-            // })
-            res.status(200).json(data);
-        })
-        .catch(function (err) {
-            return next(err);
-        })
+    db.multi(`SELECT T.*, S.nombre as sedeDesc, S.direccion, S.id as idSede, S.gratis FROM "Talleres" T JOIN "Sedes" S ON T.sede = S.id WHERE T.id = ${taller}; SELECT COUNT(*) as inscritos FROM "Usuarios" WHERE idtaller = ${taller};`)
+    .then(data => {
+        res.status(200).json(data);
+    })
+    .catch(function (err){
+        return next(err);
+    })
 }
 
 function getCorreosByTallerId(req, res, next) {
@@ -515,6 +660,29 @@ function getCorreosByTallerId(req, res, next) {
         res.status(500).send('Ha sucedido un error obteniendo la lista de correos correspondientes. Vuelva a intentar.');
         return next(err);
     });
+}
+
+function getCostos(req, res, next){
+    db.one('SELECT escuela_privada, escuela_publica FROM "CostosTalleres"').then(function(data){
+        res.status(200).json(data);
+    }).catch(function (err){
+        return next(err);
+    });
+}
+
+function updateCostos(req, res, next){
+    db.none(`UPDATE "CostosTalleres" SET escuela_publica='${req.body.escuela_publica}', escuela_privada=${req.body.escuela_privada}`)
+    .then(function(){
+        res.status(200)
+        .json({
+            status: 'success',
+            message: 'Se han modificado los costos.'
+        });
+    })
+    .catch(function(err){
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    })
 }
 
 function createTaller(req, res, next) {
@@ -867,9 +1035,14 @@ module.exports = {
     getCorreosByTallerId: getCorreosByTallerId,
     getTalleres: getTalleres,
     getTaller: getTaller,
+    getCostos: getCostos,
+    updateCostos: updateCostos,
     createTaller: createTaller,
     updateTaller: updateTaller,
     removeTaller: removeTaller,
+    createInscripcion: createInscripcion,
+    removeInscripcion: removeInscripcion,
+    getTalleresInscritos: getTalleresInscritos,
     getAvisos: getAvisos,
     getAvisosForUser: getAvisosForUser,
     createAviso: createAviso,
@@ -891,7 +1064,10 @@ module.exports = {
     getUsersAdmn: getUsersAdmn,
     addUserAdmin: addUserAdmin,
     deleteUserAdmin: deleteUserAdmin,
-    updateUserNumConfPago: updateUserNumConfPago
-
+    updateUserNumConfPago: updateUserNumConfPago,
+    createResponsable: createResponsable,
+    getIDResponsable: getIDResponsable,
+    updateResponsable: updateResponsable,
+    removeResponsable: removeResponsable
 }
 
