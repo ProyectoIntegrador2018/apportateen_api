@@ -288,9 +288,9 @@ function createInscripcion(req, res, next) {
                 }
             }
 
-            if(costo > 0 ){
+            if (costo > 0) {
                 estatus = "pendiente";
-            } else{
+            } else {
                 estatus = "aceptado";
             }
 
@@ -315,19 +315,19 @@ function createInscripcion(req, res, next) {
         })
 }
 
-function removeInscripcion(req,res,next){
+function removeInscripcion(req, res, next) {
     db.result(`DELETE FROM "Inscripciones" WHERE user_id='${req.params.user_id}' AND taller_id=${req.params.taller_id}`)
-    .then(function () {
-        res.status(200)
-            .json({
-                status: 'success',
-                message: 'Se eliminó la inscripcion.'
-            });
-    })
-    .catch(function (err) {
-        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-        return next(err);
-    })
+        .then(function () {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'Se eliminó la inscripcion.'
+                });
+        })
+        .catch(function (err) {
+            res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+            return next(err);
+        })
 }
 
 //JOIN "Sedes" S ON T.sede = S.id
@@ -516,7 +516,7 @@ function removeResponsable(req, res, next) {
 
 
 function getSedes(req, res, next) {
-    db.multi(`SELECT * FROM "Sedes" ORDER BY nombre ASC; SELECT * FROM "Talleres"; 
+    db.multi(`SELECT * FROM "Sedes" LEFT JOIN "Responsables" R on "Sedes".responsable = R.id_responsable ORDER BY "Sedes".nombre ASC; SELECT * FROM "Talleres"; 
     SELECT COUNT(*) as inscritos, idtaller FROM "Usuarios" GROUP BY idtaller;`)
         .then(data => {
             data[1].forEach(el => {
@@ -591,13 +591,13 @@ function updateSede(req, res, next) {
             res.status(200)
                 .json({
                     status: 'success',
-                    message: 'Se ha modificado la sede.'
+                    message: 'Se ha creado la sede.'
                 });
         })
         .catch(function (err) {
             res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
             return next(err);
-        })
+        });
 }
 
 
@@ -640,12 +640,12 @@ function getTalleres(req, res, next) {
 function getTaller(req, res, next) {
     let taller = parseInt(req.params.id);
     db.multi(`SELECT T.*, S.nombre as sedeDesc, S.direccion, S.id as idSede, S.gratis FROM "Talleres" T JOIN "Sedes" S ON T.sede = S.id WHERE T.id = ${taller}; SELECT COUNT(*) as inscritos FROM "Usuarios" WHERE idtaller = ${taller};`)
-    .then(data => {
-        res.status(200).json(data);
-    })
-    .catch(function (err){
-        return next(err);
-    })
+        .then(data => {
+            res.status(200).json(data);
+        })
+        .catch(function (err) {
+            return next(err);
+        })
 }
 
 function getCorreosByTallerId(req, res, next) {
@@ -662,27 +662,27 @@ function getCorreosByTallerId(req, res, next) {
     });
 }
 
-function getCostos(req, res, next){
-    db.one('SELECT escuela_privada, escuela_publica FROM "CostosTalleres"').then(function(data){
+function getCostos(req, res, next) {
+    db.one('SELECT escuela_privada, escuela_publica FROM "CostosTalleres"').then(function (data) {
         res.status(200).json(data);
-    }).catch(function (err){
+    }).catch(function (err) {
         return next(err);
     });
 }
 
-function updateCostos(req, res, next){
+function updateCostos(req, res, next) {
     db.none(`UPDATE "CostosTalleres" SET escuela_publica='${req.body.escuela_publica}', escuela_privada=${req.body.escuela_privada}`)
-    .then(function(){
-        res.status(200)
-        .json({
-            status: 'success',
-            message: 'Se han modificado los costos.'
-        });
-    })
-    .catch(function(err){
-        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-        return next(err);
-    })
+        .then(function () {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'Se han modificado los costos.'
+                });
+        })
+        .catch(function (err) {
+            res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+            return next(err);
+        })
 }
 
 function createTaller(req, res, next) {
@@ -757,7 +757,7 @@ function updateTaller(req, res, next) {
     if (req.body.foto_path_array.length < 1) {
         stringPath = "{}"
     }
-    
+
 
     db.none(`UPDATE "Talleres" SET nombre='${req.body.nombre}', descripcion='${req.body.descripcion}', sede=${req.body.sede}, categoria=${req.body.categoria}, cupo= ${req.body.cupo},url_array='${string}',foto_path_array='${stringPath}', tutor='${req.body.tutor}',hora_inicio='${req.body.hora_inicio}', hora_fin='${req.body.hora_fin}',fecha_inicio='${req.body.fecha_inicio}',fecha_fin='${req.body.fecha_fin}',estado='${req.body.estado}' WHERE id=${req.params.id}`)
 
@@ -807,23 +807,15 @@ function removeTaller(req, res, next) {
 
 
 function getAvisos(req, res, next) {
-    db.multi('SELECT * FROM "Avisos"; SELECT * FROM "Talleres"')
-        .then(data => {
-            var result = data[0].map(function (x) {
-                if (x.taller == 0) {
-                    x['taller'] = "Aviso público general"
-                    x['idtaller'] = 0;
-                } else {
-                    data[1].forEach(e => {
-                        if (e.id == x.taller) {
-                            x['idtaller'] = e.id;
-                            x['taller'] = e.nombre;
-                        }
-                    });
-                }
-                return x;
-            })
-            res.status(200).json(result);
+    db.multi(`
+    SELECT "Avisos".id,"Avisos".sede,"Avisos".taller,"Avisos".general,"Avisos".titulo,"Avisos".mensaje, array_agg("Talleres".nombre) as NombreTalleres, null as NombreSedes FROM "Avisos" LEFT JOIN "Talleres" ON "Talleres".id = ANY("Avisos".taller) WHERE "Avisos".taller NOTNULL GROUP BY "Avisos".id
+    UNION
+    SELECT "Avisos".id,"Avisos".sede,"Avisos".taller,"Avisos".general,"Avisos".titulo,"Avisos".mensaje, cast(null as text[]) as NombreTalleres, array_agg("Sedes".nombre) as NombreSedes FROM "Avisos" LEFT JOIN  "Sedes" ON "Sedes".id = ANY("Avisos".sede)  WHERE "Avisos".sede NOTNULL GROUP BY "Avisos".id
+    UNION
+    SELECT "Avisos".id,"Avisos".sede,"Avisos".taller,"Avisos".general,"Avisos".titulo,"Avisos".mensaje, cast(null as text[]) as NombreTalleres, cast(null as text[]) as NombreSedes FROM "Avisos" WHERE "Avisos".general = true GROUP BY "Avisos".id;
+    `)
+        .then(result => {
+            res.status(200).json(result[0]);
         })
         .catch(function (err) {
             return next(err);
@@ -856,23 +848,53 @@ function getAvisosForUser(req, res, next) {
 }
 
 function createAviso(req, res, next) {
-    db.none(`INSERT INTO "Avisos"(titulo, mensaje, taller) 
-    VALUES ('${req.body.titulo}', '${req.body.mensaje}',  ${req.body.idtaller})`)
-        .then(function () {
-            res.status(200)
-                .json({
-                    status: 'success',
-                    message: 'Se ha creado el aviso.'
-                });
-        })
-        .catch(function (err) {
-            res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-            return next(err);
-        })
+    if (req.body.general) {
+        db.none(`INSERT INTO "Avisos"(titulo, mensaje, general) VALUES ('${req.body.titulo}', '${req.body.mensaje}', TRUE)`)
+            .then(function () {
+                res.status(200)
+                    .json({
+                        status: 'success',
+                        message: 'Se ha creado el aviso.'
+                    });
+            })
+            .catch(function (err) {
+                res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+                return next(err);
+            })
+    } else if (req.body.taller != null && req.body.sede == null) {
+        db.none(`INSERT INTO "Avisos"(titulo, mensaje, taller) VALUES ('${req.body.titulo}', '${req.body.mensaje}', ARRAY [${req.body.taller}])`)
+            .then(function () {
+                res.status(200)
+                    .json({
+                        status: 'success',
+                        message: 'Se ha creado el aviso.'
+                    });
+            })
+            .catch(function (err) {
+                res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+                return next(err);
+            })
+    } else if (req.body.taller == null && req.body.sede != null) {
+        db.none(`INSERT INTO "Avisos"(titulo, mensaje, sede) VALUES ('${req.body.titulo}', '${req.body.mensaje}', ARRAY [${req.body.sede}])`)
+            .then(function () {
+                res.status(200)
+                    .json({
+                        status: 'success',
+                        message: 'Se ha creado el aviso.'
+                    });
+            })
+            .catch(function (err) {
+                res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+                return next(err);
+            })
+    } else {
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    }
 }
 
 function updateAviso(req, res, next) {
-    db.none(`UPDATE "Avisos" SET titulo='${req.body.titulo}', mensaje='${req.body.mensaje}', taller=${req.body.idtaller} WHERE id=${req.params.id}`)
+    db.none(`UPDATE "Avisos" SET titulo='${req.body.titulo}', mensaje='${req.body.mensaje}' WHERE id=${req.params.id}`)
         .then(function () {
             res.status(200)
                 .json({
