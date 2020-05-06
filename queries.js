@@ -871,7 +871,7 @@ function getAvisosForUser(req, res, next) {
 }
 
 function createAviso(req, res, next) {
-    if (req.body.global) {
+    if (req.body.general) {
         db.none(`INSERT INTO "Avisos"(titulo, mensaje, general) VALUES ('${req.body.titulo}', '${req.body.mensaje}', TRUE)`)
             .then(function () {
                 res.status(200)
@@ -884,8 +884,8 @@ function createAviso(req, res, next) {
                 res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
                 return next(err);
             })
-    } else if (req.body.talleres != null && req.body.sedes == null) {
-        db.none(`INSERT INTO "Avisos"(titulo, mensaje, taller) VALUES ('${req.body.titulo}', '${req.body.mensaje}', ARRAY [${req.body.talleres}])`)
+    } else if (req.body.taller != null && req.body.sede == null) {
+        db.none(`INSERT INTO "Avisos"(titulo, mensaje, taller) VALUES ('${req.body.titulo}', '${req.body.mensaje}', ARRAY [${req.body.taller}])`)
             .then(function () {
                 res.status(200)
                     .json({
@@ -897,8 +897,8 @@ function createAviso(req, res, next) {
                 res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
                 return next(err);
             })
-    } else if (req.body.talleres == null && req.body.sedes != null) {
-        db.none(`INSERT INTO "Avisos"(titulo, mensaje, sede) VALUES ('${req.body.titulo}', '${req.body.mensaje}', ARRAY [${req.body.sedes}])`)
+    } else if (req.body.taller == null && req.body.sede != null) {
+        db.none(`INSERT INTO "Avisos"(titulo, mensaje, sede) VALUES ('${req.body.titulo}', '${req.body.mensaje}', ARRAY [${req.body.sede}])`)
             .then(function () {
                 res.status(200)
                     .json({
@@ -917,7 +917,7 @@ function createAviso(req, res, next) {
 }
 
 function updateAviso(req, res, next) {
-    db.none(`UPDATE "Avisos" SET titulo='${req.body.titulo}', mensaje='${req.body.mensaje}', taller=${req.body.idtaller} WHERE id=${req.params.id}`)
+    db.none(`UPDATE "Avisos" SET titulo='${req.body.titulo}', mensaje='${req.body.mensaje}' WHERE id=${req.params.id}`)
         .then(function () {
             res.status(200)
                 .json({
