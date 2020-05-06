@@ -288,9 +288,9 @@ function createInscripcion(req, res, next) {
                 }
             }
 
-            if(costo > 0 ){
+            if (costo > 0) {
                 estatus = "pendiente";
-            } else{
+            } else {
                 estatus = "aceptado";
             }
 
@@ -315,19 +315,19 @@ function createInscripcion(req, res, next) {
         })
 }
 
-function removeInscripcion(req,res,next){
+function removeInscripcion(req, res, next) {
     db.result(`DELETE FROM "Inscripciones" WHERE user_id='${req.params.user_id}' AND taller_id=${req.params.taller_id}`)
-    .then(function () {
-        res.status(200)
-            .json({
-                status: 'success',
-                message: 'Se eliminó la inscripcion.'
-            });
-    })
-    .catch(function (err) {
-        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-        return next(err);
-    })
+        .then(function () {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'Se eliminó la inscripcion.'
+                });
+        })
+        .catch(function (err) {
+            res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+            return next(err);
+        })
 }
 
 //JOIN "Sedes" S ON T.sede = S.id
@@ -593,12 +593,11 @@ function updateSede(req, res, next) {
                     status: 'success',
                     message: 'Se ha creado la sede.'
                 });
-            })
-            .catch(function (err) {
-                res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-                return next(err);
-            });
-    }
+        })
+        .catch(function (err) {
+            res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+            return next(err);
+        });
 }
 
 function updateSede(req, res, next) {
@@ -663,12 +662,12 @@ function getTalleres(req, res, next) {
 function getTaller(req, res, next) {
     let taller = parseInt(req.params.id);
     db.multi(`SELECT T.*, S.nombre as sedeDesc, S.direccion, S.id as idSede, S.gratis FROM "Talleres" T JOIN "Sedes" S ON T.sede = S.id WHERE T.id = ${taller}; SELECT COUNT(*) as inscritos FROM "Usuarios" WHERE idtaller = ${taller};`)
-    .then(data => {
-        res.status(200).json(data);
-    })
-    .catch(function (err){
-        return next(err);
-    })
+        .then(data => {
+            res.status(200).json(data);
+        })
+        .catch(function (err) {
+            return next(err);
+        })
 }
 
 function getCorreosByTallerId(req, res, next) {
@@ -685,27 +684,27 @@ function getCorreosByTallerId(req, res, next) {
     });
 }
 
-function getCostos(req, res, next){
-    db.one('SELECT escuela_privada, escuela_publica FROM "CostosTalleres"').then(function(data){
+function getCostos(req, res, next) {
+    db.one('SELECT escuela_privada, escuela_publica FROM "CostosTalleres"').then(function (data) {
         res.status(200).json(data);
-    }).catch(function (err){
+    }).catch(function (err) {
         return next(err);
     });
 }
 
-function updateCostos(req, res, next){
+function updateCostos(req, res, next) {
     db.none(`UPDATE "CostosTalleres" SET escuela_publica='${req.body.escuela_publica}', escuela_privada=${req.body.escuela_privada}`)
-    .then(function(){
-        res.status(200)
-        .json({
-            status: 'success',
-            message: 'Se han modificado los costos.'
-        });
-    })
-    .catch(function(err){
-        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-        return next(err);
-    })
+        .then(function () {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'Se han modificado los costos.'
+                });
+        })
+        .catch(function (err) {
+            res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+            return next(err);
+        })
 }
 
 function createTaller(req, res, next) {
@@ -780,7 +779,7 @@ function updateTaller(req, res, next) {
     if (req.body.foto_path_array.length < 1) {
         stringPath = "{}"
     }
-    
+
 
     db.none(`UPDATE "Talleres" SET nombre='${req.body.nombre}', descripcion='${req.body.descripcion}', sede=${req.body.sede}, categoria=${req.body.categoria}, cupo= ${req.body.cupo},url_array='${string}',foto_path_array='${stringPath}', tutor='${req.body.tutor}',hora_inicio='${req.body.hora_inicio}', hora_fin='${req.body.hora_fin}',fecha_inicio='${req.body.fecha_inicio}',fecha_fin='${req.body.fecha_fin}',estado='${req.body.estado}' WHERE id=${req.params.id}`)
 
