@@ -330,13 +330,13 @@ function removeInscripcion(req, res, next) {
         })
 }
 
-//JOIN "Sedes" S ON T.sede = S.id
+//tabla inscripciones
 function getTalleresInscritos(req, res, next) {
     console.log(req.params.user_id);
-    db.any(`SELECT * FROM (("Inscripciones" I JOIN "Talleres" T ON I.taller_id = T.id) JOIN "Sedes" S ON T.sede = S.id) WHERE I.user_id='${req.params.user_id}'`).then(function (data) {
+    db.any(`SELECT I.*, T.*, S.nombre as nombre_sede, S.gratis, S.direccion FROM (("Inscripciones" I JOIN "Talleres" T ON I.taller_id = T.id) JOIN "Sedes" S ON T.sede = S.id) WHERE I.user_id='${req.params.user_id}'`).then(function (data) {
         res.status(200).json(data);
     }).catch(function (err) {
-        console.log("ERROR QUERY");
+        res.status(500).send('Ha sucedido un error obteniendo los talleres inscritos. Vuelva a intentar.');
         return next(err);
     });
 }
