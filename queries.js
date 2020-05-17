@@ -140,6 +140,18 @@ function getUsersAdmn(req, res, next) {
         })
 }
 
+function getPendingPayments(req, res, next) {
+    console.log("trying to get pending");
+    db.any(`SELECT u.nombre, u.apellido, i.*, t.nombre as nombreTaller FROM "Inscripciones" i JOIN "Usuarios" u ON i.user_id = u.id JOIN "Talleres" t ON i.taller_id = t.id WHERE i.estatus = 'pendiente'`)
+        .then(function (data) {
+        
+            res.status(200).json(data);
+        }).catch(function (err) {
+            console.log(err)
+            //return next(err)
+        })
+}
+
 function addUserAdmin(req, res, next) {
     console.log(req.body.id);
     db.none(`INSERT INTO "Admins"(uid) VALUES ('${req.body.id}')`)
@@ -1045,7 +1057,7 @@ module.exports = {
     removeSponsor: removeSponsor,
     getGuardianByChildId: getGuardianByChildId,
     createGuardian: createGuardian,
-
+    getPendingPayments: getPendingPayments,
     agregaTutor: agregaTutor,
     getTutor: getTutor,
     updateTutor: updateTutor,
