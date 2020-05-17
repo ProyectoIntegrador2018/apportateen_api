@@ -250,7 +250,9 @@ function removeUser(req, res, next) {
     console.log(req.params.id);
     admin.auth().deleteUser(req.params.id)
         .then(function () {
-            db.none(`DELETE FROM "Usuarios" WHERE id='${req.params.id}'`)
+            db.none(`DELETE FROM "Inscripciones" WHERE user_id='${req.params.id}'`)
+            .then(function () {
+                db.none(`DELETE FROM "Usuarios" WHERE id='${req.params.id}'`)
                 .then(function () {
                     res.status(200)
                         .json({
@@ -262,6 +264,11 @@ function removeUser(req, res, next) {
                     res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
                     return next(err);
                 })
+            })
+            .catch(function (err) {
+                res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+                return next(err);
+            })
         })
         .catch(function (error) {
             res.status(500).send('Favor de contactar al administrador del sistema para registrarse.');
@@ -776,9 +783,11 @@ function updateTaller(req, res, next) {
 
 function removeTaller(req, res, next) {
     var sedeId = parseInt(req.params.id);
-    console.log("Trying to delete: ")
-    console.log(req.params.id)
-    db.result(`DELETE FROM "Talleres" WHERE id=${sedeId} RETURNING tutor`)
+    // console.log("Trying to delete: ")
+    // console.log(req.params.id)
+    db.result(`DELETE FROM "Inscripciones" WHERE taller_id=${sedeId}`)
+    .then(function (data) {
+        db.result(`DELETE FROM "Talleres" WHERE id=${sedeId} RETURNING tutor`)
         .then(function (data) {
             console.log("Trying to delete following tutor:")
             console.log(data.rows[0].tutor)
@@ -803,6 +812,11 @@ function removeTaller(req, res, next) {
 
             res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
         })
+    })
+    .catch(function (err) {
+        console.log(err)
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+    })
 }
 
 
