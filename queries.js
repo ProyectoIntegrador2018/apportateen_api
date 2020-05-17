@@ -144,7 +144,7 @@ function getPendingPayments(req, res, next) {
     console.log("trying to get pending");
     db.any(`SELECT u.nombre, u.apellido, i.*, t.nombre as nombreTaller FROM "Inscripciones" i JOIN "Usuarios" u ON i.user_id = u.id JOIN "Talleres" t ON i.taller_id = t.id WHERE i.estatus = 'pendiente'`)
         .then(function (data) {
-        
+
             res.status(200).json(data);
         }).catch(function (err) {
             console.log(err)
@@ -240,6 +240,38 @@ function updateUserTaller(req, res, next) {
     }).catch(function (err) {
         res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
         return next(err);
+    })
+
+}
+
+function rechazarComprobante(req, res, next) {
+    console.log(req.body.voucherInformation);
+
+    db.none(`UPDATE "Inscripciones" SET estatus ='rechazado', mensaje='${req.body.mensaje}'  WHERE user_id='${req.body.user_id}' AND taller_id='${req.body.taller_id}' `).then(function () {
+        res.status(200)
+            .json({
+                status: 'success',
+                message: 'Se ha modificado satisfactoriamente tu comprobante.'
+            });
+    }).catch(function (err) {
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    })
+
+}
+
+function aceptarComprobante(req, res, next) {
+    console.log(req.body)
+    db.none(`UPDATE "Inscripciones" SET estatus ='aceptado' WHERE user_id='${req.body.user_id}' AND taller_id='${req.body.taller_id}' `).then(function () {
+        res.status(200)
+            .json({
+                status: 'success',
+                message: 'Se ha modificado satisfactoriamente tu comprobante.'
+            });
+    }).catch(function (err) {
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        console.log(err)
+        //return next(err);
     })
 
 }
@@ -1102,6 +1134,8 @@ module.exports = {
     createResponsable: createResponsable,
     getIDResponsable: getIDResponsable,
     updateResponsable: updateResponsable,
-    removeResponsable: removeResponsable
+    removeResponsable: removeResponsable,
+    aceptarComprobante: aceptarComprobante,
+    rechazarComprobante: rechazarComprobante
 }
 
