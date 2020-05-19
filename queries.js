@@ -142,7 +142,7 @@ function getUsersAdmn(req, res, next) {
 
 function getPendingPayments(req, res, next) {
     console.log("trying to get pending");
-    db.any(`SELECT u.nombre, u.apellido, i.*, t.nombre as nombreTaller FROM "Inscripciones" i JOIN "Usuarios" u ON i.user_id = u.id JOIN "Talleres" t ON i.taller_id = t.id WHERE i.estatus = 'pendiente'`)
+    db.any(`SELECT u.nombre, u.apellido, i.*, t.nombre as nombreTaller FROM "Inscripciones" i JOIN "Usuarios" u ON i.user_id = u.id JOIN "Talleres" t ON i.taller_id = t.id WHERE i.estatus = 'en revision'`)
         .then(function (data) {
 
             res.status(200).json(data);
@@ -236,6 +236,20 @@ function updateUserTaller(req, res, next) {
             .json({
                 status: 'success',
                 message: 'Se ha modificado satisfactoriamente tu inscripción.'
+            });
+    }).catch(function (err) {
+        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+        return next(err);
+    })
+
+}
+
+function subirComprobante(req, res, next) {
+    db.none(`UPDATE "Inscripciones" SET estatus ='en revision', comprobante='${req.body.comprobante}', ref_comprobante='${req.body.ref_comprobante}' WHERE user_id='${req.body.user_id}' AND taller_id='${req.body.taller_id}' `).then(function () {
+        res.status(200)
+            .json({
+                status: 'success',
+                message: 'Se ha registrado satisfactoriamente tu comprobante.'
             });
     }).catch(function (err) {
         res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
@@ -345,7 +359,7 @@ function createInscripcion(req, res, next) {
                 estatus = "aceptado";
             }
 
-            db.none(`INSERT INTO "Inscripciones"(user_id, taller_id, comprobante, estatus, mensaje) VALUES ('${userId}', '${tallerId}', null , '${estatus}' , null)`)
+            db.none(`INSERT INTO "Inscripciones"(user_id, taller_id, comprobante, estatus, mensaje, ref_comprobante) VALUES ('${userId}', '${tallerId}', null , '${estatus}' , null, null)`)
                 .then(function () {
                     res.status(200)
                         .json({
@@ -1150,6 +1164,7 @@ module.exports = {
     updateResponsable: updateResponsable,
     removeResponsable: removeResponsable,
     aceptarComprobante: aceptarComprobante,
-    rechazarComprobante: rechazarComprobante
+    rechazarComprobante: rechazarComprobante,
+    subirComprobante: subirComprobante
 }
 
