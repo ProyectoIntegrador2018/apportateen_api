@@ -882,11 +882,11 @@ function getAvisos(req, res, next) {
 
 function getAvisosForUser(req, res, next) {
     db.multi(`
-    SELECT "Avisos".titulo, "Avisos".mensaje, 'Aviso general' as "emisor" FROM "Avisos" WHERE "Avisos".general = TRUE
+    SELECT "Avisos".id, "Avisos".titulo, "Avisos".mensaje, '{Aviso general}' as "emisor", 'general' as "tipoEmisor" FROM "Avisos" WHERE "Avisos".general = TRUE
     UNION
-    SELECT "Avisos".titulo, "Avisos".mensaje, "Talleres".nombre as "emisor" FROM "Avisos" JOIN "Inscripciones" ON "Inscripciones".taller_id = ANY("Avisos".taller) JOIN "Talleres" ON "Talleres".id = "Inscripciones".taller_id WHERE "Inscripciones".user_id = '${req.params.id}'
+    SELECT "Avisos".id, "Avisos".titulo, "Avisos".mensaje, array_agg("Talleres".nombre) as "emisor", 'taller' as "tipoEmisor" FROM "Avisos" JOIN "Inscripciones" ON "Inscripciones".taller_id = ANY("Avisos".taller) JOIN "Talleres" ON "Talleres".id = "Inscripciones".taller_id WHERE "Inscripciones".user_id = '${req.params.id}' GROUP BY "Avisos".id
     UNION
-    SELECT "Avisos".titulo, "Avisos".mensaje, "Sedes".nombre as "emisor" FROM "Avisos" JOIN "Sedes" ON "Sedes".id = ANY("Avisos".sede) WHERE "Sedes".id IN (SELECT "Talleres".sede FROM "Avisos" JOIN "Inscripciones" ON "Inscripciones".taller_id = ANY("Avisos".taller) JOIN "Talleres" ON "Talleres".id = "Inscripciones".taller_id WHERE "Inscripciones".user_id = '${req.params.id}');
+    SELECT "Avisos".id, "Avisos".titulo, "Avisos".mensaje, array_agg("Sedes".nombre) as "emisor", 'sede' as "tipoEmisor" FROM "Avisos" JOIN "Sedes" ON "Sedes".id = ANY("Avisos".sede) WHERE "Sedes".id IN (SELECT "Talleres".sede FROM "Inscripciones" JOIN "Talleres" ON "Talleres".id = "Inscripciones".taller_id WHERE "Inscripciones".user_id = '${req.params.id}') GROUP BY "Avisos".id ORDER BY id desc;;
     `)
         .then(data => {
             res.status(200).json(data[0]);
