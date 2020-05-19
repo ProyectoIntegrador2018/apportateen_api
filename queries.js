@@ -600,7 +600,7 @@ function getSedes(req, res, next) {
 
 function createSede(req, res, next) {
     if (req.body.responsable == null) {
-        db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable, gratis) VALUES ('${req.body.nombre}', '${req.body.direccion}, null, '${req.body.gratis}')`)
+            db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable, gratis) VALUES ('${req.body.nombre}', '${req.body.direccion}', null, '${req.body.gratis}')`)
             .then(function () {
                 res.status(200)
                     .json({
