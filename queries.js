@@ -881,26 +881,17 @@ function getAvisos(req, res, next) {
 }
 
 function getAvisosForUser(req, res, next) {
-    db.multi(`SELECT * FROM "Avisos" WHERE taller=${req.params.id} OR taller = 0; SELECT * FROM "Talleres"`)
+    db.multi(`
+    SELECT "Avisos".titulo, "Avisos".mensaje, 'Aviso general' as "emisor" FROM "Avisos" WHERE "Avisos".general = TRUE
+    UNION
+    SELECT "Avisos".titulo, "Avisos".mensaje, "Talleres".nombre as "emisor" FROM "Avisos" JOIN "Inscripciones" ON "Inscripciones".taller_id = ANY("Avisos".taller) JOIN "Talleres" ON "Talleres".id = "Inscripciones".taller_id WHERE "Inscripciones".user_id = '${req.params.id}'
+    UNION
+    SELECT "Avisos".titulo, "Avisos".mensaje, "Sedes".nombre as "emisor" FROM "Avisos" JOIN "Sedes" ON "Sedes".id = ANY("Avisos".sede) WHERE "Sedes".id IN (SELECT "Talleres".sede FROM "Avisos" JOIN "Inscripciones" ON "Inscripciones".taller_id = ANY("Avisos".taller) JOIN "Talleres" ON "Talleres".id = "Inscripciones".taller_id WHERE "Inscripciones".user_id = '${req.params.id}');
+    `)
         .then(data => {
-            var result = data[0].map(function (x) {
-                if (x.taller == 0) {
-                    x['taller'] = "Aviso público general"
-                    x['idtaller'] = 0;
-                } else {
-                    data[1].forEach(e => {
-                        if (e.id == x.taller) {
-                            x['idtaller'] = e.id;
-                            x['taller'] = e.nombre;
-                        }
-                    });
-                }
-                return x;
-            })
-            res.status(200).json(result);
+            res.status(200).json(data[0]);
         })
         .catch(function (err) {
-            console.log('HELLO')
             return next(err);
         })
 }
