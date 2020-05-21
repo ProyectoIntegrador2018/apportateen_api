@@ -245,7 +245,7 @@ function updateUserTaller(req, res, next) {
 }
 
 function subirComprobante(req, res, next) {
-    db.none(`UPDATE "Inscripciones" SET estatus ='en revision', comprobante='${req.body.comprobante}', ref_comprobante='${req.body.ref_comprobante}' WHERE user_id='${req.body.user_id}' AND taller_id='${req.body.taller_id}' `).then(function () {
+    db.none(`UPDATE "Inscripciones" SET estatus ='en revision', comprobante='${req.body.comprobante}', ref_comprobante='${req.body.ref_comprobante}', mensaje= null WHERE user_id='${req.body.user_id}' AND taller_id='${req.body.taller_id}' `).then(function () {
         res.status(200)
             .json({
                 status: 'success',
