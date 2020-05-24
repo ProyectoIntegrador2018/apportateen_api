@@ -600,6 +600,7 @@ function getSedes(req, res, next) {
                 var talleres = [];
                 data[1].forEach(el => {
                     if (element.id === el.sede)
+                        el["gratis"] = element.gratis; //AGREGADO
                         talleres.push(el);
                 });
                 element['talleres'] = talleres;
@@ -690,6 +691,7 @@ function getTalleres(req, res, next) {
                     if (x.sede === e.id) {
                         x['sedeDesc'] = e.nombre;
                         x['ubicacion'] = e.direccion;
+                        x['gratis'] = e.gratis; //AGREGADO
                     }
                 });
                 return x;
