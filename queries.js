@@ -582,12 +582,14 @@ function removeResponsable(req, res, next) {
 
 function getSedes(req, res, next) {
     db.multi(`SELECT * FROM "Sedes" LEFT JOIN "Responsables" R on "Sedes".responsable = R.id_responsable ORDER BY "Sedes".nombre ASC; SELECT * FROM "Talleres"; 
-    SELECT COUNT(*) as inscritos, idtaller FROM "Usuarios" GROUP BY idtaller;`)
+    SELECT COUNT(*) as inscritos, taller_id FROM "Inscripciones" GROUP BY taller_id;`) 
+    //data 0 = sedes,  data 1 =  talleres,  data 2 = inscritos
         .then(data => {
             data[1].forEach(el => {
                 var registro = true;
                 data[2].forEach(x => {
-                    if (x.idtaller == el.id) {
+                    //para validacion de cupo
+                    if (x.taller_id == el.id) {
                         el['inscritos'] = x.inscritos;
                         registro = false;
                     }
@@ -607,8 +609,6 @@ function getSedes(req, res, next) {
                 element['talleres'] = talleres;
                 talleres = [];
             });
-            console.log("DATA");
-            console.log(data[0]);
             res.status(200).json(data[0]);
         })
         .catch(function (err) {
