@@ -261,7 +261,7 @@ function subirComprobante(req, res, next) {
 function rechazarComprobante(req, res, next) {
     console.log(req.body.voucherInformation);
 
-    db.none(`UPDATE "Inscripciones" SET estatus ='rechazado', mensaje='${req.body.mensaje}'  WHERE user_id='${req.body.user_id}' AND taller_id='${req.body.taller_id}' `).then(function () {
+    db.none(`UPDATE "Inscripciones" SET estatus ='rechazado', mensaje='${req.body.mensaje}', comprobante = null, ref_comprobante=null WHERE user_id='${req.body.user_id}' AND taller_id='${req.body.taller_id}' `).then(function () {
         res.status(200)
             .json({
                 status: 'success',
