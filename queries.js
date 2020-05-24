@@ -309,24 +309,24 @@ function removeUser(req, res, next) {
     admin.auth().deleteUser(req.params.id)
         .then(function () {
             db.none(`DELETE FROM "Inscripciones" WHERE user_id='${req.params.id}'`)
-            .then(function () {
-                db.none(`DELETE FROM "Usuarios" WHERE id='${req.params.id}'`)
                 .then(function () {
-                    res.status(200)
-                        .json({
-                            status: 'success',
-                            message: 'Se eliminó el usuario satisfactoriamente.'
-                        });
+                    db.none(`DELETE FROM "Usuarios" WHERE id='${req.params.id}'`)
+                        .then(function () {
+                            res.status(200)
+                                .json({
+                                    status: 'success',
+                                    message: 'Se eliminó el usuario satisfactoriamente.'
+                                });
+                        })
+                        .catch(function (err) {
+                            res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
+                            return next(err);
+                        })
                 })
                 .catch(function (err) {
                     res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
                     return next(err);
                 })
-            })
-            .catch(function (err) {
-                res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-                return next(err);
-            })
         })
         .catch(function (error) {
             res.status(500).send('Favor de contactar al administrador del sistema para registrarse.');
@@ -599,13 +599,16 @@ function getSedes(req, res, next) {
             data[0].forEach(element => {
                 var talleres = [];
                 data[1].forEach(el => {
-                    if (element.id === el.sede)
-                        el["gratis"] = element.gratis; //AGREGADO
+                    if (element.id === el.sede) {
+                        el.gratis = element.gratis; 
                         talleres.push(el);
+                    }
                 });
                 element['talleres'] = talleres;
                 talleres = [];
             });
+            console.log("DATA");
+            console.log(data[0]);
             res.status(200).json(data[0]);
         })
         .catch(function (err) {
@@ -615,7 +618,7 @@ function getSedes(req, res, next) {
 
 function createSede(req, res, next) {
     if (req.body.responsable == null) {
-            db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable, gratis) VALUES ('${req.body.nombre}', '${req.body.direccion}', null, '${req.body.gratis}')`)
+        db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable, gratis) VALUES ('${req.body.nombre}', '${req.body.direccion}', null, '${req.body.gratis}')`)
             .then(function () {
                 res.status(200)
                     .json({
@@ -846,37 +849,37 @@ function removeTaller(req, res, next) {
     // console.log("Trying to delete: ")
     // console.log(req.params.id)
     db.result(`DELETE FROM "Inscripciones" WHERE taller_id=${sedeId}`)
-    .then(function (data) {
-        db.result(`DELETE FROM "Talleres" WHERE id=${sedeId} RETURNING tutor`)
         .then(function (data) {
-            console.log("Trying to delete following tutor:")
-            console.log(data.rows[0].tutor)
-            db.result(`DELETE FROM "Tutores" WHERE id_tutor=${data.rows[0].tutor}`)
-                .then(function () {
-                    res.status(200)
-                        .json({
-                            status: 'success',
-                            message: 'Se eliminó el taller.'
-                        });
+            db.result(`DELETE FROM "Talleres" WHERE id=${sedeId} RETURNING tutor`)
+                .then(function (data) {
+                    console.log("Trying to delete following tutor:")
+                    console.log(data.rows[0].tutor)
+                    db.result(`DELETE FROM "Tutores" WHERE id_tutor=${data.rows[0].tutor}`)
+                        .then(function () {
+                            res.status(200)
+                                .json({
+                                    status: 'success',
+                                    message: 'Se eliminó el taller.'
+                                });
+                        })
+                        .catch(function (err) {
+                            res.status(200)
+                                .json({
+                                    status: 'success',
+                                    message: 'Se eliminó el taller.'
+                                });
+                        })
                 })
                 .catch(function (err) {
-                    res.status(200)
-                        .json({
-                            status: 'success',
-                            message: 'Se eliminó el taller.'
-                        });
+                    console.log(err)
+
+                    res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
                 })
         })
         .catch(function (err) {
             console.log(err)
-
             res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
         })
-    })
-    .catch(function (err) {
-        console.log(err)
-        res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-    })
 }
 
 
