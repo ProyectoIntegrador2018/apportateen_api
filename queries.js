@@ -709,7 +709,7 @@ function getTalleres(req, res, next) {
 
 function getTaller(req, res, next) {
     let taller = parseInt(req.params.id);
-    db.multi(`SELECT T.*, S.nombre as sedeDesc, S.direccion, S.id as idSede, S.gratis FROM "Talleres" T JOIN "Sedes" S ON T.sede = S.id WHERE T.id = ${taller}; SELECT COUNT(*) as inscritos FROM "Usuarios" WHERE idtaller = ${taller};`)
+    db.multi(`SELECT T.*, S.nombre as sedeDesc, S.direccion, S.id as idSede, S.gratis FROM "Talleres" T JOIN "Sedes" S ON T.sede = S.id WHERE T.id = ${taller}; SELECT COUNT(*) as inscritos FROM "Inscripciones" WHERE taller_id = ${taller};`)
         .then(data => {
             res.status(200).json(data);
         })
