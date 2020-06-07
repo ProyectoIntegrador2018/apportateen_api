@@ -395,9 +395,19 @@ function removeInscripcion(req, res, next) {
         })
 }
 
+//obtener la referencia de un comprobante
+function getRefComprobante(req, res, next) {
+    db.one(`SELECT ref_comprobante FROM "Inscripciones" WHERE user_id='${req.params.user_id}' AND taller_id=${req.params.taller_id}`).then(function (data) {
+            res.status(200).json(data);
+        })
+        .catch(function (err) {
+            res.status(500).send('Error');
+            return next(err);
+        })
+}
+
 //tabla inscripciones
 function getTalleresInscritos(req, res, next) {
-    console.log(req.params.user_id);
     db.any(`SELECT I.*, T.*, S.nombre as nombre_sede, S.gratis, S.direccion FROM (("Inscripciones" I JOIN "Talleres" T ON I.taller_id = T.id) JOIN "Sedes" S ON T.sede = S.id) WHERE I.user_id='${req.params.user_id}'`).then(function (data) {
         res.status(200).json(data);
     }).catch(function (err) {
@@ -405,6 +415,7 @@ function getTalleresInscritos(req, res, next) {
         return next(err);
     });
 }
+
 
 function getAllSponsors(req, res, next) {
     db.any('SELECT * FROM "Patrocinadores"').then(function (data) {
@@ -1133,6 +1144,7 @@ module.exports = {
     createInscripcion: createInscripcion,
     removeInscripcion: removeInscripcion,
     getTalleresInscritos: getTalleresInscritos,
+    getRefComprobante: getRefComprobante,
     getAvisos: getAvisos,
     getAvisosForUser: getAvisosForUser,
     createAviso: createAviso,
