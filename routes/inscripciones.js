@@ -7,5 +7,6 @@ router.post('/', db.createInscripcion);
 router.get('/:user_id', db.getTalleresInscritos);
 router.delete('/:taller_id/:user_id', db.removeInscripcion);
 router.put('/comprobante', db.subirComprobante);
+router.get('/comprobante/:taller_id/:user_id', db.getRefComprobante);
 
 module.exports = router;

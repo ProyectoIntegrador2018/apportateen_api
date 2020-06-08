@@ -396,7 +396,7 @@ function removeInscripcion(req, res, next) {
             res.status(200)
                 .json({
                     status: 'success',
-                    message: 'Se eliminó la inscripcion.'
+                    message: 'Se eliminó la inscripción.'
                 });
         })
         .catch(function (err) {
@@ -405,9 +405,19 @@ function removeInscripcion(req, res, next) {
         })
 }
 
+//obtener la referencia de un comprobante
+function getRefComprobante(req, res, next) {
+    db.one(`SELECT ref_comprobante FROM "Inscripciones" WHERE user_id='${req.params.user_id}' AND taller_id=${req.params.taller_id}`).then(function (data) {
+            res.status(200).json(data);
+        })
+        .catch(function (err) {
+            res.status(500).send('Error');
+            return next(err);
+        })
+}
+
 //tabla inscripciones
 function getTalleresInscritos(req, res, next) {
-    console.log(req.params.user_id);
     db.any(`SELECT I.*, T.*, S.nombre as nombre_sede, S.gratis, S.direccion FROM (("Inscripciones" I JOIN "Talleres" T ON I.taller_id = T.id) JOIN "Sedes" S ON T.sede = S.id) WHERE I.user_id='${req.params.user_id}'`).then(function (data) {
         res.status(200).json(data);
     }).catch(function (err) {
@@ -415,6 +425,7 @@ function getTalleresInscritos(req, res, next) {
         return next(err);
     });
 }
+
 
 function getAllSponsors(req, res, next) {
     db.any('SELECT * FROM "Patrocinadores"').then(function (data) {
@@ -719,7 +730,7 @@ function getTalleres(req, res, next) {
 
 function getTaller(req, res, next) {
     let taller = parseInt(req.params.id);
-    db.multi(`SELECT T.*, S.nombre as sedeDesc, S.direccion, S.id as idSede, S.gratis FROM "Talleres" T JOIN "Sedes" S ON T.sede = S.id WHERE T.id = ${taller}; SELECT COUNT(*) as inscritos FROM "Usuarios" WHERE idtaller = ${taller};`)
+    db.multi(`SELECT T.*, S.nombre as sedeDesc, S.direccion, S.id as idSede, S.gratis FROM "Talleres" T JOIN "Sedes" S ON T.sede = S.id WHERE T.id = ${taller}; SELECT COUNT(*) as inscritos FROM "Inscripciones" WHERE taller_id = ${taller};`)
         .then(data => {
             res.status(200).json(data);
         })
@@ -1144,6 +1155,7 @@ module.exports = {
     createInscripcion: createInscripcion,
     removeInscripcion: removeInscripcion,
     getTalleresInscritos: getTalleresInscritos,
+    getRefComprobante: getRefComprobante,
     getAvisos: getAvisos,
     getAvisosForUser: getAvisosForUser,
     createAviso: createAviso,
