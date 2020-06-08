@@ -386,7 +386,7 @@ function removeInscripcion(req, res, next) {
             res.status(200)
                 .json({
                     status: 'success',
-                    message: 'Se eliminó la inscripcion.'
+                    message: 'Se eliminó la inscripción.'
                 });
         })
         .catch(function (err) {
