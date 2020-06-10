@@ -154,7 +154,7 @@ function getPendingPayments(req, res, next) {
 
 function getAcceptedPayments(req, res, next) {
     console.log("trying to get pending");
-    db.any(`SELECT u.nombre, u.apellido, i.*, t.nombre as nombreTaller FROM "Inscripciones" i JOIN "Usuarios" u ON i.user_id = u.id JOIN "Talleres" t ON i.taller_id = t.id WHERE i.estatus = 'aceptado'`)
+    db.any(`SELECT u.nombre, u.apellido, i.*, t.nombre as nombreTaller FROM "Inscripciones" i JOIN "Usuarios" u ON i.user_id = u.id JOIN "Talleres" t ON i.taller_id = t.id WHERE i.estatus = 'aceptado' and i.ref_comprobante IS NOT NULL`)
         .then(function (data) {
 
             res.status(200).json(data);
