@@ -3,6 +3,7 @@ var router = express.Router();
 var db = require('../queries');
 
 router.get('/', db.getAllUsers);
+router.get('/listaInscripciones', db.getEnrollmentList);
 router.get('/:id', db.getUser);
 //router.get('/:correo',db.getUserByEmail);
 router.post('/', db.createUser);

@@ -102,6 +102,14 @@ function getAllUsers(req, res, next) {
     });
 }
 
+function getEnrollmentList(req, res, next){
+    db.multi(`SELECT "Usuarios".id,"Usuarios".nombre, apellido, fecha_nacimiento, correo, telefono, curp, escuela, idcategoria, sexo, tutor_nombre, tutor_correo, tutor_telefono, escuela_tipo, escuela_grado , array_to_string(array_agg("Talleres".nombre), ', ') AS Talleres, COUNT("Archivos".user_id) as documentos FROM "Usuarios" LEFT JOIN "Inscripciones" I on "Usuarios".id = I.user_id LEFT JOIN "Talleres" ON I.taller_id = "Talleres".id LEFT JOIN "Archivos" on "Usuarios".id = "Archivos".user_id WHERE "Usuarios".id NOT IN(SELECT uid FROM "Admins") GROUP BY "Usuarios".id;`).then( (data) => {
+        res.status(200).json(data[0]);
+    }).catch(function (err) {
+        return next(err);
+    });
+}
+
 function getUser(req, res, next) {
     db.multi(`SELECT US.*, CA.nombre as categoria FROM "Usuarios" US LEFT JOIN "Categorias" CA ON ca.id = US.idcategoria WHERE US.id='${req.params.id}'; 
     SELECT * FROM "Admins" WHERE uid='${req.params.id}';`)
@@ -142,7 +150,7 @@ function getUsersAdmn(req, res, next) {
 
 function getPendingPayments(req, res, next) {
     console.log("trying to get pending");
-    db.any(`SELECT u.nombre, u.apellido, i.*, t.nombre as nombreTaller FROM "Inscripciones" i JOIN "Usuarios" u ON i.user_id = u.id JOIN "Talleres" t ON i.taller_id = t.id WHERE i.estatus = 'en revision'`)
+    db.any(`SELECT u.nombre, u.apellido, i.*, t.nombre as nombreTaller FROM "Inscripciones" i JOIN "Usuarios" u ON i.user_id = u.id JOIN "Talleres" t ON i.taller_id = t.id WHERE i.estatus = 'en revision' and ref_comprobante is not null`)
         .then(function (data) {
 
             res.status(200).json(data);
@@ -154,7 +162,7 @@ function getPendingPayments(req, res, next) {
 
 function getAcceptedPayments(req, res, next) {
     console.log("trying to get pending");
-    db.any(`SELECT u.nombre, u.apellido, i.*, t.nombre as nombreTaller FROM "Inscripciones" i JOIN "Usuarios" u ON i.user_id = u.id JOIN "Talleres" t ON i.taller_id = t.id WHERE i.estatus = 'aceptado'`)
+    db.any(`SELECT u.nombre, u.apellido, i.*, t.nombre as nombreTaller FROM "Inscripciones" i JOIN "Usuarios" u ON i.user_id = u.id JOIN "Talleres" t ON i.taller_id = t.id WHERE i.estatus = 'aceptado' and i.ref_comprobante IS NOT NULL`)
         .then(function (data) {
 
             res.status(200).json(data);
@@ -542,6 +550,8 @@ function updateTutor(req, res, next) {
 }
 
 function createResponsable(req, res, next) {
+    // Creates a new Responsable in the Responsables table if the Responsable email does not already exists.
+    // If the responsable email is already registered, then do nothing.
     db.none(`INSERT INTO "Responsables"(NOMBRE_RESPONSABLE, CORREO_RESPONSABLE) VALUES ('${req.body.nombre_responsable}','${req.body.correo_responsable}')
     ON CONFLICT(correo_responsable) DO NOTHING;`)
         .then(function () {
@@ -558,6 +568,7 @@ function createResponsable(req, res, next) {
 }
 
 function getIDResponsable(req, res, next) {
+    // Get the ID of a Responsable by their email.
     db.multi(`SELECT id_responsable FROM "Responsables" WHERE CORREO_RESPONSABLE = '${req.params.correo_responsable}'`)
         .then(data => {
             res.status(200).json(data[0][0]);
@@ -568,6 +579,7 @@ function getIDResponsable(req, res, next) {
 }
 
 function updateResponsable(req, res, next) {
+    // Change the email and name of the given Responsable
     db.none(`
     UPDATE "Responsables" SET nombre_responsable='${req.body.nombre_responsable}', correo_responsable='${req.body.correo_responsable}'  where id_responsable='${req.params.id}'
     `)
@@ -585,6 +597,7 @@ function updateResponsable(req, res, next) {
 }
 
 function removeResponsable(req, res, next) {
+    // Delete the given responsable
     var id_responsable = parseInt(req.params.id);
     db.result(`DELETE FROM "Responsables" WHERE "id_responsable"=${id_responsable} AND "id_responsable" NOT IN (SELECT responsable FROM "Sedes" WHERE responsable IS NOT NULL)`)
         .then(function () {
@@ -602,6 +615,7 @@ function removeResponsable(req, res, next) {
 
 
 function getSedes(req, res, next) {
+    // Get all the Sedes for the Admin to manage
     db.multi(`SELECT * FROM "Sedes" LEFT JOIN "Responsables" R on "Sedes".responsable = R.id_responsable ORDER BY "Sedes".nombre ASC; SELECT * FROM "Talleres"; 
     SELECT COUNT(*) as inscritos, taller_id FROM "Inscripciones" GROUP BY taller_id;`) 
     //data 0 = sedes,  data 1 =  talleres,  data 2 = inscritos
@@ -638,6 +652,7 @@ function getSedes(req, res, next) {
 }
 
 function createSede(req, res, next) {
+    // Creates a new Sede with or without a Responsable. The Responsable id should be provided in the request.
     if (req.body.responsable == null) {
         db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable, gratis) VALUES ('${req.body.nombre}', '${req.body.direccion}', null, '${req.body.gratis}')`)
             .then(function () {
@@ -905,6 +920,10 @@ function removeTaller(req, res, next) {
 
 
 function getAvisos(req, res, next) {
+    /*
+    Get all the announcements created in the System for the Admin to see and manage.
+    Returns a JSONs with all announcements by Sede, by Talleres and sent to all (General)
+    */
     db.multi(`
     SELECT "Avisos".id,"Avisos".sede,"Avisos".taller,"Avisos".general,"Avisos".titulo,"Avisos".mensaje, array_agg("Talleres".nombre) as NombreTalleres, null as NombreSedes FROM "Avisos" LEFT JOIN "Talleres" ON "Talleres".id = ANY("Avisos".taller) WHERE "Avisos".taller NOTNULL GROUP BY "Avisos".id
     UNION
@@ -921,6 +940,9 @@ function getAvisos(req, res, next) {
 }
 
 function getAvisosForUser(req, res, next) {
+    /*
+    Returns all the general announcements and the ones created for any Sede and Taller in which the user is enrolled. 
+    */
     db.multi(`
     SELECT "Avisos".id, "Avisos".titulo, "Avisos".mensaje, '{Aviso general}' as "emisor", 'general' as "tipoEmisor" FROM "Avisos" WHERE "Avisos".general = TRUE
     UNION
@@ -937,7 +959,9 @@ function getAvisosForUser(req, res, next) {
 }
 
 function createAviso(req, res, next) {
+    // Allow the administrator to create any kind of announcement (General, by Sede, by Taller)
     if (req.body.general) {
+        //Query to create a General announcement
         db.none(`INSERT INTO "Avisos"(titulo, mensaje, general) VALUES ('${req.body.titulo}', '${req.body.mensaje}', TRUE)`)
             .then(function () {
                 res.status(200)
@@ -951,6 +975,7 @@ function createAviso(req, res, next) {
                 return next(err);
             })
     } else if (req.body.taller != null && req.body.sede == null) {
+        //Query to create an announcement by one or more Taller
         db.none(`INSERT INTO "Avisos"(titulo, mensaje, taller) VALUES ('${req.body.titulo}', '${req.body.mensaje}', ARRAY [${req.body.taller}])`)
             .then(function () {
                 res.status(200)
@@ -964,6 +989,7 @@ function createAviso(req, res, next) {
                 return next(err);
             })
     } else if (req.body.taller == null && req.body.sede != null) {
+        //Query to create an announcement by one or more Sede
         db.none(`INSERT INTO "Avisos"(titulo, mensaje, sede) VALUES ('${req.body.titulo}', '${req.body.mensaje}', ARRAY [${req.body.sede}])`)
             .then(function () {
                 res.status(200)
@@ -983,6 +1009,7 @@ function createAviso(req, res, next) {
 }
 
 function updateAviso(req, res, next) {
+    // Update the title and message of the given announcement.
     db.none(`UPDATE "Avisos" SET titulo='${req.body.titulo}', mensaje='${req.body.mensaje}' WHERE id=${req.params.id}`)
         .then(function () {
             res.status(200)
@@ -998,6 +1025,7 @@ function updateAviso(req, res, next) {
 }
 
 function removeAviso(req, res, next) {
+    // Delete the given announcement
     var avisoId = parseInt(req.params.id);
     db.result(`DELETE FROM "Avisos" WHERE id=${avisoId}`)
         .then(function () {
@@ -1184,6 +1212,7 @@ module.exports = {
     removeResponsable: removeResponsable,
     aceptarComprobante: aceptarComprobante,
     rechazarComprobante: rechazarComprobante,
-    subirComprobante: subirComprobante
+    subirComprobante: subirComprobante,
+    getEnrollmentList: getEnrollmentList
 }
 
