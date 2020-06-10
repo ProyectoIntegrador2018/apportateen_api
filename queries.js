@@ -142,7 +142,7 @@ function getUsersAdmn(req, res, next) {
 
 function getPendingPayments(req, res, next) {
     console.log("trying to get pending");
-    db.any(`SELECT u.nombre, u.apellido, i.*, t.nombre as nombreTaller FROM "Inscripciones" i JOIN "Usuarios" u ON i.user_id = u.id JOIN "Talleres" t ON i.taller_id = t.id WHERE i.estatus = 'en revision'`)
+    db.any(`SELECT u.nombre, u.apellido, i.*, t.nombre as nombreTaller FROM "Inscripciones" i JOIN "Usuarios" u ON i.user_id = u.id JOIN "Talleres" t ON i.taller_id = t.id WHERE i.estatus = 'en revision' and ref_comprobante is not null`)
         .then(function (data) {
 
             res.status(200).json(data);
