@@ -102,6 +102,14 @@ function getAllUsers(req, res, next) {
     });
 }
 
+function getEnrollmentList(req, res, next){
+    db.multi(`SELECT "Usuarios".id,"Usuarios".nombre, apellido, fecha_nacimiento, correo, telefono, curp, escuela, idcategoria, sexo, tutor_nombre, tutor_correo, tutor_telefono, escuela_tipo, escuela_grado , array_to_string(array_agg("Talleres".nombre), ', ') AS Talleres, COUNT("Archivos".user_id) as documentos FROM "Usuarios" LEFT JOIN "Inscripciones" I on "Usuarios".id = I.user_id LEFT JOIN "Talleres" ON I.taller_id = "Talleres".id LEFT JOIN "Archivos" on "Usuarios".id = "Archivos".user_id WHERE "Usuarios".id NOT IN(SELECT uid FROM "Admins") GROUP BY "Usuarios".id;`).then( (data) => {
+        res.status(200).json(data[0]);
+    }).catch(function (err) {
+        return next(err);
+    });
+}
+
 function getUser(req, res, next) {
     db.multi(`SELECT US.*, CA.nombre as categoria FROM "Usuarios" US LEFT JOIN "Categorias" CA ON ca.id = US.idcategoria WHERE US.id='${req.params.id}'; 
     SELECT * FROM "Admins" WHERE uid='${req.params.id}';`)
@@ -1204,6 +1212,7 @@ module.exports = {
     removeResponsable: removeResponsable,
     aceptarComprobante: aceptarComprobante,
     rechazarComprobante: rechazarComprobante,
-    subirComprobante: subirComprobante
+    subirComprobante: subirComprobante,
+    getEnrollmentList: getEnrollmentList
 }
 
