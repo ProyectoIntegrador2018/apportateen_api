@@ -10,6 +10,31 @@
 $ cd apportateen_api
 ```
 
-3. Do a push to master.
+3. Install the Heroku CLI
 
-Everytime you do a push to master on the API, it will automatically be deployed on Heroku.
+Download and install the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-command-line).
+
+4. If you haven't already, log in to your Heroku account and follow the prompts to create a new SSH public key.
+
+``` bash
+$ heroku login
+```
+
+5. Use Git to add apportateen-v2's source code to your local machine.
+
+``` bash
+$ heroku git:remote -a apportateen-v2
+```
+
+6. Deploy your changes
+
+Make some changes to the code you just cloned and deploy them to Heroku using Git.
+
+``` bash
+$ git add .
+
+$ git commit -am "make it better"
+
+$ git push heroku master
+```
+
