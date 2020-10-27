@@ -3,7 +3,9 @@ const options = {
     promiseLib: promise
 }
 var pgp = require('pg-promise')(options);
-var connectionString = `postgres://egxgxrzpcqldtt:298a535ec51c41c0eb1b6a7f820fe9801cc1507dc5d621197c955e759abf9fd4@ec2-54-83-27-165.compute-1.amazonaws.com:5432/d7u6tefdf2r940?ssl=true`;
+var connectionString = `postgres://gccrxdkceuxntk:d8a6676402ee5f0384d937d0bf476fe13a04da609483b4ded861a599c83f3da0@ec2-54-235-192-146.compute-1.amazonaws.com:5432/dcp33lg0olk9lc?ssl=true`;
+//var connectionString = `postgres://egxgxrzpcqldtt:298a535ec51c41c0eb1b6a7f820fe9801cc1507dc5d621197c955e759abf9fd4@ec2-54-83-27-165.compute-1.amazonaws.com:5432/d7u6tefdf2r940?ssl=true`;
+
 var db = pgp(connectionString);
 var admin = require('firebase-admin');
 
@@ -33,7 +35,6 @@ function getArchivosAdmn(req, res, next) {
 }
 //DB FUNCTION - GET ARCHIVOS FROM SPECIFIC USER
 function getArchivoUser(req, res, next) {
-    console.log(req.param.id);
     db.multi(`SELECT * FROM "Archivos" WHERE user_id='${req.params.id}'; SELECT ar.user_id, COUNT(ar.id) as Cantidad FROM "Archivos" ar WHERE user_id='${req.params.id}' GROUP BY ar.user_id`).then(function (data) {
         data[0].forEach(x => {
             var hasNoDoc = true;
@@ -111,6 +112,8 @@ function getEnrollmentList(req, res, next){
 }
 
 function getUser(req, res, next) {
+    console.log("aaaaaaaaaaaaaaaaaaaaaaa")
+    console.log(req.params)
     db.multi(`SELECT US.*, CA.nombre as categoria FROM "Usuarios" US LEFT JOIN "Categorias" CA ON ca.id = US.idcategoria WHERE US.id='${req.params.id}'; 
     SELECT * FROM "Admins" WHERE uid='${req.params.id}';`)
         .then(data => {
@@ -723,7 +726,7 @@ function removeSede(req, res, next) {
 }
 
 function getTalleres(req, res, next) {
-    db.multi('SELECT * FROM "Talleres"; SELECT * FROM "Sedes"; Select * From "Categorias"')
+    db.multi('SELECT * FROM Talleres; SELECT * FROM Sedes; Select * From Categorias')
         .then(data => {
             data[0].map(function (x) {
                 data[1].forEach(e => {
