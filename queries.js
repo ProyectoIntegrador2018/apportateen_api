@@ -215,7 +215,6 @@ function getUserByEmail() {
 }
 
 function createUser(req, res, next) {
-    console.log(req.body)
     db.none(`INSERT INTO Usuarios(id, nombre, apellido, correo, fecha_nacimiento, idcategoria, sexo, tutor_nombre,
         tutor_correo, tutor_telefono, curp, telefono, escuela, escuela_tipo, escuela_grado, id_axtuser, documentos) 
     VALUES('${req.body.id}', '${req.body.nombre}', '${req.body.apellido}', '${req.body.correo}', 
@@ -525,7 +524,7 @@ function agregaTutor(req, res, next) {
             console.log("error :(")
             console.log(err)
             res.status(500).send('Ha sucedido un error al crear tutor. Vuelva a intentar.');
-            return next(err);
+            //return next(err);
         })
 }
 
@@ -555,8 +554,9 @@ function updateTutor(req, res, next) {
 function createResponsable(req, res, next) {
     // Creates a new Responsable in the Responsables table if the Responsable email does not already exists.
     // If the responsable email is already registered, then do nothing.
-    db.none(`INSERT INTO Responsables(NOMBRE_RESPONSABLE, CORREO_RESPONSABLE) VALUES ('${req.body.nombre_responsable}','${req.body.correo_responsable}')
-    ON CONFLICT(correo_responsable) DO NOTHING;`)
+    timestamp = new Date().getUTCMilliseconds();
+    nuevoID = parseInt(timestamp);
+    db.none(`INSERT INTO Responsables(ID_RESPONSABLE, NOMBRE_RESPONSABLE, CORREO_RESPONSABLE) VALUES ('${nuevoID}', '${req.body.nombre_responsable}','${req.body.correo_responsable}')`)
         .then(function () {
             res.status(200)
                 .json({
@@ -565,8 +565,9 @@ function createResponsable(req, res, next) {
                 });
         })
         .catch(function (err) {
+            console.log(err)
             res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-            return next(err);
+            //return next(err);
         });
 }
 
@@ -655,9 +656,11 @@ function getSedes(req, res, next) {
 }
 
 function createSede(req, res, next) {
+    timestamp = new Date().getUTCMilliseconds();
+    nuevoID = parseInt(timestamp);
     // Creates a new Sede with or without a Responsable. The Responsable id should be provided in the request.
     if (req.body.responsable == null) {
-        db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable, gratis) VALUES ('${req.body.nombre}', '${req.body.direccion}', null, '${req.body.gratis}')`)
+        db.none(`INSERT INTO Sedes(id, nombre, direccion, responsable, gratis) VALUES ('${nuevoID}', '${req.body.nombre}', '${req.body.direccion}', null, '${req.body.gratis}')`)
             .then(function () {
                 res.status(200)
                     .json({
@@ -667,11 +670,12 @@ function createSede(req, res, next) {
             })
             .catch(function (err) {
                 res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-                return next(err);
+                console.log(err)
+                //return next(err);
             });
     }
     else {
-        db.none(`INSERT INTO "Sedes"(nombre, direccion, responsable, gratis) VALUES ('${req.body.nombre}', '${req.body.direccion}', '${req.body.responsable}', '${req.body.gratis}')`)
+        db.none(`INSERT INTO Sedes(id, nombre, direccion, responsable, gratis) VALUES ('${nuevoID}', '${req.body.nombre}', '${req.body.direccion}', '${req.body.responsable}', '${req.body.gratis}')`)
             .then(function () {
                 res.status(200)
                     .json({
@@ -681,7 +685,8 @@ function createSede(req, res, next) {
             })
             .catch(function (err) {
                 res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-                return next(err);
+                console.log(err)
+                //return next(err);
             });
     }
 }
@@ -693,7 +698,7 @@ function updateSede(req, res, next) {
     }
 
     db.none(`
-    UPDATE "Sedes" SET nombre='${req.body.nombre}', direccion='${req.body.direccion}', responsable=${req.body.responsable}, gratis='${req.body.gratis}' WHERE id=${req.params.id};
+    UPDATE Sedes SET nombre='${req.body.nombre}', direccion='${req.body.direccion}', responsable=${req.body.responsable}, gratis='${req.body.gratis}' WHERE id=${req.params.id};
     `)
         .then(function () {
             res.status(200)
@@ -704,14 +709,14 @@ function updateSede(req, res, next) {
         })
         .catch(function (err) {
             res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-            return next(err);
+            //return next(err);
         });
 }
 
 
 function removeSede(req, res, next) {
     var sedeId = parseInt(req.params.id);
-    db.result(`DELETE FROM "Sedes" WHERE id=${sedeId}`)
+    db.result(`DELETE FROM Sedes WHERE id=${sedeId}`)
         .then(function () {
             res.status(200)
                 .json({
@@ -721,7 +726,7 @@ function removeSede(req, res, next) {
         })
         .catch(function (err) {
             res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-            return next(err);
+            //return next(err);
         })
 }
 
