@@ -27,7 +27,7 @@ function createArchivoAdmn(req, res, next) {
 
 //DB FUNCTION - GET ALL ARCHIVOS FROM DATABASE
 function getArchivosAdmn(req, res, next) {
-    db.multi(`SELECT ar.* FROM "Archivos" ar WHERE ar.user_id IN (SELECT uid FROM "Admins")`).then(function (data) {
+    db.multi(`SELECT ar.* FROM Archivos ar WHERE ar.user_id IN (SELECT uid FROM Admins)`).then(function (data) {
         res.status(200).json(data);
     }).catch(function (err) {
         return next(err);
@@ -35,7 +35,7 @@ function getArchivosAdmn(req, res, next) {
 }
 //DB FUNCTION - GET ARCHIVOS FROM SPECIFIC USER
 function getArchivoUser(req, res, next) {
-    db.multi(`SELECT * FROM "Archivos" WHERE user_id='${req.params.id}'; SELECT ar.user_id, COUNT(ar.id) as Cantidad FROM "Archivos" ar WHERE user_id='${req.params.id}' GROUP BY ar.user_id`).then(function (data) {
+    db.multi(`SELECT * FROM Archivos WHERE user_id='${req.params.id}'; SELECT ar.user_id, COUNT(ar.id) as Cantidad FROM Archivos ar WHERE user_id='${req.params.id}' GROUP BY ar.user_id`).then(function (data) {
         data[0].forEach(x => {
             var hasNoDoc = true;
             data[1].forEach(y => {
@@ -56,7 +56,7 @@ function getArchivoUser(req, res, next) {
 
 function getArchivoAdminByUsers(req, res, next) {
     console.log(req.param.id);
-    db.multi(`SELECT * FROM "Archivos" WHERE user_id !='${req.params.id}'`).then(function (data) {
+    db.multi(`SELECT * FROM Archivos WHERE user_id !='${req.params.id}'`).then(function (data) {
         res.status(200).json(data);
     }).catch(function (err) {
         return next(err);
@@ -65,7 +65,7 @@ function getArchivoAdminByUsers(req, res, next) {
 
 //DB FUNCITON - DELETE SPECIFIC DOCUMENT
 function deleteArchivoAdmn(req, res, next) {
-    db.none(`DELETE FROM "Archivos" WHERE archivo_path='${req.params.id}'`)
+    db.none(`DELETE FROM Archivos WHERE archivo_path='${req.params.id}'`)
         .then(function () {
             res.status(200)
                 .json({
@@ -80,7 +80,7 @@ function deleteArchivoAdmn(req, res, next) {
 }
 
 function getAllUsers(req, res, next) {
-    db.multi(`SELECT u.* FROM "Usuarios" u WHERE u.id NOT IN(SELECT uid FROM "Admins") ORDER BY nombre ASC; SELECT ar.user_id, COUNT(ar.id) as Cantidad FROM "Archivos" ar GROUP BY ar.user_id`).then(function (data) {
+    db.multi(`SELECT u.* FROM Usuarios u WHERE u.id NOT IN(SELECT uid FROM Admins) ORDER BY nombre ASC; SELECT ar.user_id, COUNT(ar.id) as Cantidad FROM Archivos ar GROUP BY ar.user_id`).then(function (data) {
         data[0].map(x => {
             x.fecha_nacimiento = JSON.stringify(x.fecha_nacimiento).split('T')[0].replace(/"/g, "");
             return x;
@@ -114,8 +114,8 @@ function getEnrollmentList(req, res, next){
 function getUser(req, res, next) {
     console.log("aaaaaaaaaaaaaaaaaaaaaaa")
     console.log(req.params)
-    db.multi(`SELECT US.*, CA.nombre as categoria FROM "Usuarios" US LEFT JOIN "Categorias" CA ON ca.id = US.idcategoria WHERE US.id='${req.params.id}'; 
-    SELECT * FROM "Admins" WHERE uid='${req.params.id}';`)
+    db.multi(`SELECT US.*, CA.nombre as categoria FROM Usuarios US LEFT JOIN Categorias CA ON ca.id = US.idcategoria WHERE US.id='${req.params.id}'; 
+    SELECT * FROM Admins WHERE uid='${req.params.id}';`)
         .then(data => {
             data[0][0]['isAdmin'] = data[1].length > 0 ? true : false;
             res.status(200).json(data[0][0]);
@@ -177,7 +177,7 @@ function getAcceptedPayments(req, res, next) {
 
 function addUserAdmin(req, res, next) {
     console.log(req.body.id);
-    db.none(`INSERT INTO "Admins"(uid) VALUES ('${req.body.id}')`)
+    db.none(`INSERT INTO Admins(uid) VALUES ('${req.body.id}')`)
         .then(function () {
             res.status(200)
                 .json({
@@ -192,7 +192,7 @@ function addUserAdmin(req, res, next) {
 }
 
 function deleteUserAdmin(req, res, next) {
-    db.none(`DELETE FROM "Admins" WHERE uid='${req.params.id}'`)
+    db.none(`DELETE FROM Admins WHERE uid='${req.params.id}'`)
         .then(function () {
             res.status(200)
                 .json({
@@ -207,7 +207,7 @@ function deleteUserAdmin(req, res, next) {
 }
 
 function getUserByEmail() {
-    db.one(`SELECT * FROM "Usuarios WHERE correo='${req.params.correo}'`)
+    db.one(`SELECT * FROM Usuarios WHERE correo='${req.params.correo}'`)
         .then(function (data) {
             res.status(200).json(data);
         })
@@ -217,10 +217,11 @@ function getUserByEmail() {
 }
 
 function createUser(req, res, next) {
-    db.none(`INSERT INTO "Usuarios"(id, nombre, apellido, correo, fecha_nacimiento, idcategoria, sexo, tutor_nombre,
+    console.log(req.body)
+    db.none(`INSERT INTO Usuarios(id, nombre, apellido, correo, fecha_nacimiento, idcategoria, sexo, tutor_nombre,
         tutor_correo, tutor_telefono, curp, telefono, escuela, escuela_tipo, escuela_grado, id_axtuser, documentos) 
     VALUES('${req.body.id}', '${req.body.nombre}', '${req.body.apellido}', '${req.body.correo}', 
-    TO_DATE('${req.body.fecha_nacimiento}', 'DD-MM-YYYY'), assign_category('${req.body.fecha_nacimiento}'), '${req.body.sexo}',
+    TO_DATE('${req.body.fecha_nacimiento}', 'DD-MM-YYYY'), '1', '${req.body.sexo}',
     '${req.body.tutor_nombre}', '${req.body.tutor_correo}', '${req.body.tutor_telefono}', '${req.body.curp}',
     '${req.body.telefono}', '${req.body.escuela}', '${req.body.escuela_tipo}', '${req.body.escuela_grado}',
      '${req.body.id_axtuser}',0)`)
@@ -235,7 +236,8 @@ function createUser(req, res, next) {
             admin.auth().deleteUser(req.body.id)
                 .then(function () {
                     res.status(500).send('¡Ups! Algo ha salido mal. Intenta volver a registrarte.');
-                    return next(err);
+                    //return next(err);
+                    console.log(err)
                 })
                 .catch(function (error) {
                     res.status(500).send('Favor de contactar al administrador del sistema para registrarse.');
@@ -619,8 +621,8 @@ function removeResponsable(req, res, next) {
 
 function getSedes(req, res, next) {
     // Get all the Sedes for the Admin to manage
-    db.multi(`SELECT * FROM "Sedes" LEFT JOIN "Responsables" R on "Sedes".responsable = R.id_responsable ORDER BY "Sedes".nombre ASC; SELECT * FROM "Talleres"; 
-    SELECT COUNT(*) as inscritos, taller_id FROM "Inscripciones" GROUP BY taller_id;`) 
+    db.multi(`SELECT * FROM Sedes LEFT JOIN Responsables R on Sedes.responsable = R.id_responsable ORDER BY Sedes.nombre ASC; SELECT * FROM Talleres; 
+    SELECT COUNT(*) as inscritos, taller_id FROM Inscripciones GROUP BY taller_id;`)
     //data 0 = sedes,  data 1 =  talleres,  data 2 = inscritos
         .then(data => {
             data[1].forEach(el => {
@@ -748,7 +750,7 @@ function getTalleres(req, res, next) {
 
 function getTaller(req, res, next) {
     let taller = parseInt(req.params.id);
-    db.multi(`SELECT T.*, S.nombre as sedeDesc, S.direccion, S.id as idSede, S.gratis FROM "Talleres" T JOIN "Sedes" S ON T.sede = S.id WHERE T.id = ${taller}; SELECT COUNT(*) as inscritos FROM "Inscripciones" WHERE taller_id = ${taller};`)
+    db.multi(`SELECT T.*, S.nombre as sedeDesc, S.direccion, S.id as idSede, S.gratis FROM Talleres T JOIN Sedes S ON T.sede = S.id WHERE T.id = ${taller}; SELECT COUNT(*) as inscritos FROM Inscripciones WHERE taller_id = ${taller};`)
         .then(data => {
             res.status(200).json(data);
         })
@@ -758,10 +760,10 @@ function getTaller(req, res, next) {
 }
 
 function getCorreosByTallerId(req, res, next) {
-    let query = 'SELECT correo FROM "Usuarios" where id NOT IN (SELECT uid FROM "Admins")';
+    let query = 'SELECT correo FROM Usuarios where id NOT IN (SELECT uid FROM Admins)';
     let taller = parseInt(req.params.id);
     if (taller > 0) {
-        query = `SELECT correo FROM "Usuarios"  where idtaller=${taller}`;
+        query = `SELECT correo FROM Usuarios  where idtaller=${taller}`;
     }
     db.any(query).then(function (data) {
         res.status(200).json(data.map(x => x.correo));
@@ -772,7 +774,7 @@ function getCorreosByTallerId(req, res, next) {
 }
 
 function getCostos(req, res, next) {
-    db.one('SELECT escuela_privada, escuela_publica FROM "CostosTalleres"').then(function (data) {
+    db.one('SELECT escuela_privada, escuela_publica FROM CostosTalleres').then(function (data) {
         res.status(200).json(data);
     }).catch(function (err) {
         return next(err);
@@ -780,7 +782,7 @@ function getCostos(req, res, next) {
 }
 
 function updateCostos(req, res, next) {
-    db.none(`UPDATE "CostosTalleres" SET escuela_publica='${req.body.escuela_publica}', escuela_privada=${req.body.escuela_privada}`)
+    db.none(`UPDATE CostosTalleres SET escuela_publica='${req.body.escuela_publica}', escuela_privada=${req.body.escuela_privada}`)
         .then(function () {
             res.status(200)
                 .json({
@@ -822,7 +824,7 @@ function createTaller(req, res, next) {
         stringPath = "{}"
     }
 
-    db.none(`INSERT INTO "Talleres"(nombre, descripcion, sede, categoria, cupo, url_array, foto_path_array,tutor, hora_inicio, hora_fin, fecha_inicio, fecha_fin, estado) 
+    db.none(`INSERT INTO Talleres(nombre, descripcion, sede, categoria, cupo, url_array, foto_path_array,tutor, hora_inicio, hora_fin, fecha_inicio, fecha_fin, estado) 
     VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, 9, ${req.body.cupo}, '${string}', '${stringPath}','${req.body.tutor}','${req.body.hora_inicio}','${req.body.hora_fin}','${req.body.fecha_inicio}','${req.body.fecha_fin}','${req.body.estado}')`)
         .then(function () {
             res.status(200)
@@ -868,7 +870,7 @@ function updateTaller(req, res, next) {
     }
 
 
-    db.none(`UPDATE "Talleres" SET nombre='${req.body.nombre}', descripcion='${req.body.descripcion}', sede=${req.body.sede}, categoria=${req.body.categoria}, cupo= ${req.body.cupo},url_array='${string}',foto_path_array='${stringPath}', tutor='${req.body.tutor}',hora_inicio='${req.body.hora_inicio}', hora_fin='${req.body.hora_fin}',fecha_inicio='${req.body.fecha_inicio}',fecha_fin='${req.body.fecha_fin}',estado='${req.body.estado}' WHERE id=${req.params.id}`)
+    db.none(`UPDATE Talleres SET nombre='${req.body.nombre}', descripcion='${req.body.descripcion}', sede=${req.body.sede}, categoria=${req.body.categoria}, cupo= ${req.body.cupo},url_array='${string}',foto_path_array='${stringPath}', tutor='${req.body.tutor}',hora_inicio='${req.body.hora_inicio}', hora_fin='${req.body.hora_fin}',fecha_inicio='${req.body.fecha_inicio}',fecha_fin='${req.body.fecha_fin}',estado='${req.body.estado}' WHERE id=${req.params.id}`)
 
         .then(function () {
             res.status(200)
@@ -887,13 +889,13 @@ function removeTaller(req, res, next) {
     var sedeId = parseInt(req.params.id);
     // console.log("Trying to delete: ")
     // console.log(req.params.id)
-    db.result(`DELETE FROM "Inscripciones" WHERE taller_id=${sedeId}`)
+    db.result(`DELETE FROM Inscripciones WHERE taller_id=${sedeId}`)
         .then(function (data) {
-            db.result(`DELETE FROM "Talleres" WHERE id=${sedeId} RETURNING tutor`)
+            db.result(`DELETE FROM Talleres WHERE id=${sedeId} RETURNING tutor`)
                 .then(function (data) {
                     console.log("Trying to delete following tutor:")
                     console.log(data.rows[0].tutor)
-                    db.result(`DELETE FROM "Tutores" WHERE id_tutor=${data.rows[0].tutor}`)
+                    db.result(`DELETE FROM Tutores WHERE id_tutor=${data.rows[0].tutor}`)
                         .then(function () {
                             res.status(200)
                                 .json({
@@ -1045,7 +1047,7 @@ function removeAviso(req, res, next) {
 
 
 function getCategorias(req, res, next) {
-    db.multi('SELECT * FROM "Categorias"; SELECT * FROM "Talleres"')
+    db.multi('SELECT * FROM Categorias; SELECT * FROM Talleres')
         .then(data => {
             var result = data[0].map(function (x) {
                 var talleres = [];
@@ -1111,7 +1113,7 @@ function removeCategoria(req, res, next) {
 }
 
 function getEstatusConvocatorias(req, res, next) {
-    db.one('SELECT estatus FROM "Convocatorias"').then(function (data) {
+    db.one('SELECT estatus FROM Convocatorias').then(function (data) {
         res.status(200).json(data);
     }).catch(function (err) {
         return next(err);
