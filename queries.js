@@ -428,7 +428,7 @@ function getRefComprobante(req, res, next) {
 
 //tabla inscripciones
 function getTalleresInscritos(req, res, next) {
-    db.any(`SELECT I.*, T.*, S.nombre as nombre_sede, S.gratis, S.direccion FROM ((Inscripciones I JOIN "Talleres" T ON I.taller_id = T.id) JOIN "Sedes" S ON T.sede = S.id) WHERE I.user_id='${req.params.user_id}'`).then(function (data) {
+    db.any(`SELECT I.*, T.*, S.nombre as nombre_sede, S.gratis, S.direccion FROM ((Inscripciones I JOIN Talleres T ON I.taller_id = T.id) JOIN Sedes S ON T.sede = S.id) WHERE I.user_id='${req.params.user_id}'`).then(function (data) {
         res.status(200).json(data);
     }).catch(function (err) {
         res.status(500).send('Ha sucedido un error obteniendo los talleres inscritos. Vuelva a intentar.');
@@ -491,10 +491,13 @@ function getGuardianByChildId(req, res, next) {
 }
 
 function createGuardian(req, res, next) {
-    console.log(req.body);
-    db.none(`INSERT INTO Tutores(nombre, correo, telefono, asignacion) 
-    VALUES ('${req.body.nombre}', '${req.body.correo}', '${req.body.telefono}', '${req.body.asignacion}')`)
+    console.log(req.body)
+    timestamp = new Date().getUTCMilliseconds();
+    nuevoID = parseInt(timestamp);
+    db.none(`INSERT INTO Tutores(id_tutor, nombre_tutor, correo_tutor, telefono_tutor)
+    VALUES ('${nuevoID}', '${req.body.nombre_tutor}', '${req.body.correo_tutor}','${req.body.telefono_tutor}')`)
         .then(function () {
+            console.log("SE AGREGO")
             res.status(200)
                 .json({
                     status: 'success',
@@ -502,28 +505,31 @@ function createGuardian(req, res, next) {
                 });
         })
         .catch(function (err) {
+            console.log(err)
             res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-            return next(err);
+            //return next(err);
         })
 }
 function agregaTutor(req, res, next) {
     console.log(req.body);
-    db.one(`INSERT INTO Tutores(nombre_tutor, correo_tutor, telefono_tutor) 
-    VALUES ('${req.body.nombre_tutor}', '${req.body.correo_tutor}','${req.body.telefono_tutor}')  ON CONFLICT(correo_tutor) DO NOTHING RETURNING id_tutor;`)
-        .then(function (data) {
-            console.log("AGREGA TUTOR:")
+    timestamp = new Date().getUTCMilliseconds();
+    nuevoID = parseInt(timestamp);
+    db.none(`INSERT INTO Tutores(id_tutor, nombre_tutor, correo_tutor, telefono_tutor)
+    VALUES ('${nuevoID}', '${req.body.nombre_tutor}', '${req.body.correo_tutor}','${req.body.telefono_tutor}')`)
+        .then(function () {
+            data = req.body
+            console.log("SE AGREGO")
             console.log(data)
             res.status(200)
                 .json({
                     status: 'success',
-                    message: 'Se ha agregado el tutor..',
+                    message: 'Se ha creado el tutor.',
                     data: data
                 });
         })
         .catch(function (err) {
-            console.log("error :(")
             console.log(err)
-            res.status(500).send('Ha sucedido un error al crear tutor. Vuelva a intentar.');
+            res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
             //return next(err);
         })
 }
@@ -800,6 +806,8 @@ function updateCostos(req, res, next) {
 }
 
 function createTaller(req, res, next) {
+    console.log("CREACION DE TALLEEEEEEEEEEEEEEEEEEEEER")
+    //console.log(req.body)
     let string = "{"
     for (let i = 0; i < req.body.url_array.length; i++) {
         string += req.body.url_array[i]
@@ -827,8 +835,10 @@ function createTaller(req, res, next) {
         stringPath = "{}"
     }
 
+    console.log(req.body)
+
     db.none(`INSERT INTO Talleres(nombre, descripcion, sede, categoria, cupo, url_array, foto_path_array,tutor, hora_inicio, hora_fin, fecha_inicio, fecha_fin, estado) 
-    VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, 9, ${req.body.cupo}, '${string}', '${stringPath}','${req.body.tutor}','${req.body.hora_inicio}','${req.body.hora_fin}','${req.body.fecha_inicio}','${req.body.fecha_fin}','${req.body.estado}')`)
+    VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, 1, ${req.body.cupo}, '${req.body.url_array}', '${stringPath}','${req.body.tutor}','${req.body.hora_inicio}','${req.body.hora_fin}','${req.body.fecha_inicio}','${req.body.fecha_fin}','${req.body.estado}')`)
         .then(function () {
             res.status(200)
                 .json({
@@ -956,7 +966,7 @@ function getAvisosForUser(req, res, next) {
     UNION
     SELECT Avisos.id, Avisos.titulo, Avisos.mensaje, array_agg(Talleres.nombre) as "emisor", 'taller' as "tipoEmisor" FROM Avisos JOIN Inscripciones ON Inscripciones.taller_id = ANY(Avisos.taller) JOIN Talleres ON Talleres.id = Inscripciones.taller_id WHERE Inscripciones.user_id = '${req.params.id}' GROUP BY Avisos.id
     UNION
-    SELECT Avisos.id, Avisos.titulo, Avisos.mensaje, array_agg(Sedes.nombre) as "emisor", 'sede' as "tipoEmisor" FROM Avisos JOIN "Sedes" ON "Sedes".id = ANY(Avisos.sede) WHERE "Sedes".id IN (SELECT "Talleres".sede FROM Inscripciones JOIN "Talleres" ON "Talleres".id = Inscripciones.taller_id WHERE Inscripciones.user_id = '${req.params.id}') GROUP BY Avisos.id ORDER BY id desc;;
+    SELECT Avisos.id, Avisos.titulo, Avisos.mensaje, array_agg(Sedes.nombre) as "emisor", 'sede' as "tipoEmisor" FROM Avisos JOIN Sedes ON Sedes.id = ANY(Avisos.sede) WHERE Sedes.id IN (SELECT Talleres.sede FROM Inscripciones JOIN Talleres ON Talleres.id = Inscripciones.taller_id WHERE Inscripciones.user_id = '${req.params.id}') GROUP BY Avisos.id ORDER BY id desc;;
     `)
         .then(data => {
             res.status(200).json(data[0]);
@@ -1070,7 +1080,7 @@ function getCategorias(req, res, next) {
 }
 
 function createCategoria(req, res, next) {
-    db.none(`INSERT INTO "Categorias"(nombre, minima, maxima) 
+    db.none(`INSERT INTO Categorias(nombre, minima, maxima) 
     VALUES ('${req.body.nombre}', ${req.body.minima},  ${req.body.maxima})`)
         .then(function () {
             res.status(200)
@@ -1086,7 +1096,7 @@ function createCategoria(req, res, next) {
 }
 
 function updateCategoria(req, res, next) {
-    db.none(`UPDATE "Categorias" SET nombre='${req.body.nombre}', minima=${req.body.minima}, maxima=${req.body.maxima} WHERE id=${req.params.id}`)
+    db.none(`UPDATE Categorias SET nombre='${req.body.nombre}', minima=${req.body.minima}, maxima=${req.body.maxima} WHERE id=${req.params.id}`)
         .then(function () {
             res.status(200)
                 .json({
@@ -1102,7 +1112,7 @@ function updateCategoria(req, res, next) {
 
 function removeCategoria(req, res, next) {
     var catId = parseInt(req.params.id);
-    db.result(`DELETE FROM "Categorias" WHERE id=${catId}`)
+    db.result(`DELETE FROM Categorias WHERE id=${catId}`)
         .then(function () {
             res.status(200)
                 .json({
@@ -1124,7 +1134,7 @@ function getEstatusConvocatorias(req, res, next) {
 }
 
 function updateEstatusConvocatorias(req, res, next) {
-    db.none(`UPDATE "Convocatorias" set estatus=${req.body.estatus}`)
+    db.none(`UPDATE Convocatorias set estatus=${req.body.estatus}`)
         .then(function () {
             res.status(200)
                 .json({
