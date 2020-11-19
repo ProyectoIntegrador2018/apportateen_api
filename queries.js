@@ -216,12 +216,12 @@ function getUserByEmail() {
 
 function createUser(req, res, next) {
     db.none(`INSERT INTO Usuarios(id, nombre, apellido, correo, fecha_nacimiento, idcategoria, sexo, tutor_nombre,
-        tutor_correo, tutor_telefono, curp, telefono, escuela, escuela_tipo, escuela_grado, id_axtuser, documentos) 
+        tutor_correo, tutor_telefono, curp, telefono, escuela, escuela_tipo, escuela_grado, id_axtuser, documentos, talleres) 
     VALUES('${req.body.id}', '${req.body.nombre}', '${req.body.apellido}', '${req.body.correo}', 
     TO_DATE('${req.body.fecha_nacimiento}', 'DD-MM-YYYY'), '1', '${req.body.sexo}',
     '${req.body.tutor_nombre}', '${req.body.tutor_correo}', '${req.body.tutor_telefono}', '${req.body.curp}',
     '${req.body.telefono}', '${req.body.escuela}', '${req.body.escuela_tipo}', '${req.body.escuela_grado}',
-     '${req.body.id_axtuser}',0)`)
+     '${req.body.id}',0, ARRAY[0])`)
         .then(function () {
             res.status(200)
                 .json({
@@ -983,9 +983,11 @@ function getAvisosForUser(req, res, next) {
 
 function createAviso(req, res, next) {
     // Allow the administrator to create any kind of announcement (General, by Sede, by Taller)
+    timestamp = new Date().getUTCMilliseconds();
+    idAviso = parseInt(timestamp);
     if (req.body.general) {
         //Query to create a General announcement
-        db.none(`INSERT INTO Avisos(titulo, mensaje, general) VALUES ('${req.body.titulo}', '${req.body.mensaje}', TRUE)`)
+        db.none(`INSERT INTO Avisos(id, titulo, mensaje, general) VALUES ('${idAviso}', '${req.body.titulo}', '${req.body.mensaje}', TRUE)`)
             .then(function () {
                 res.status(200)
                     .json({
@@ -995,11 +997,12 @@ function createAviso(req, res, next) {
             })
             .catch(function (err) {
                 res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-                return next(err);
+                console.log(err)
+                //return next(err);
             })
     } else if (req.body.taller != null && req.body.sede == null) {
         //Query to create an announcement by one or more Taller
-        db.none(`INSERT INTO Avisos(titulo, mensaje, taller) VALUES ('${req.body.titulo}', '${req.body.mensaje}', ARRAY [${req.body.taller}])`)
+        db.none(`INSERT INTO Avisos(id, titulo, mensaje, taller) VALUES ('${idAviso}', '${req.body.titulo}', '${req.body.mensaje}', ARRAY [${req.body.taller}])`)
             .then(function () {
                 res.status(200)
                     .json({
@@ -1013,7 +1016,7 @@ function createAviso(req, res, next) {
             })
     } else if (req.body.taller == null && req.body.sede != null) {
         //Query to create an announcement by one or more Sede
-        db.none(`INSERT INTO Avisos(titulo, mensaje, sede) VALUES ('${req.body.titulo}', '${req.body.mensaje}', ARRAY [${req.body.sede}])`)
+        db.none(`INSERT INTO Avisos(id, titulo, mensaje, sede) VALUES (${idAviso}, '${req.body.titulo}', '${req.body.mensaje}', ARRAY [${req.body.sede}])`)
             .then(function () {
                 res.status(200)
                     .json({
