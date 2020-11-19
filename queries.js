@@ -510,10 +510,14 @@ function createGuardian(req, res, next) {
             //return next(err);
         })
 }
+
+idTutor = 0;
+
 function agregaTutor(req, res, next) {
-    console.log(req.body);
+    //console.log(req.body);
     timestamp = new Date().getUTCMilliseconds();
     nuevoID = parseInt(timestamp);
+    this.idTutor = nuevoID
     db.none(`INSERT INTO Tutores(id_tutor, nombre_tutor, correo_tutor, telefono_tutor)
     VALUES ('${nuevoID}', '${req.body.nombre_tutor}', '${req.body.correo_tutor}','${req.body.telefono_tutor}')`)
         .then(function () {
@@ -835,10 +839,11 @@ function createTaller(req, res, next) {
         stringPath = "{}"
     }
 
-    console.log(req.body)
+    timestamp = new Date().getUTCMilliseconds();
+    idTaller = parseInt(timestamp);
 
-    db.none(`INSERT INTO Talleres(nombre, descripcion, sede, categoria, cupo, url_array, foto_path_array,tutor, hora_inicio, hora_fin, fecha_inicio, fecha_fin, estado) 
-    VALUES ('${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, 1, ${req.body.cupo}, '${req.body.url_array}', '${stringPath}','${req.body.tutor}','${req.body.hora_inicio}','${req.body.hora_fin}','${req.body.fecha_inicio}','${req.body.fecha_fin}','${req.body.estado}')`)
+    db.none(`INSERT INTO Talleres(id, nombre, descripcion, sede, categoria, cupo, url_array, foto_path_array,tutor, hora_inicio, hora_fin, fecha_inicio, fecha_fin, estado) 
+    VALUES ('${idTaller}', '${req.body.nombre}', '${req.body.descripcion}', ${req.body.sede}, 1, '${req.body.cupo}', '${string}', '${stringPath}','${this.idTutor}','${req.body.hora_inicio}','${req.body.hora_fin}','${req.body.fecha_inicio}','${req.body.fecha_fin}','${req.body.estado}')`)
         .then(function () {
             res.status(200)
                 .json({
