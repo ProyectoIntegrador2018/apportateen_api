@@ -175,7 +175,9 @@ function getAcceptedPayments(req, res, next) {
 
 function addUserAdmin(req, res, next) {
     console.log(req.body.id);
-    db.none(`INSERT INTO Admins(uid) VALUES ('${req.body.id}')`)
+    timestamp = new Date().getUTCMilliseconds();
+    adminID = parseInt(timestamp);
+    db.none(`INSERT INTO Admins(id, uid) VALUES (${adminID}, '${req.body.id}')`)
         .then(function () {
             res.status(200)
                 .json({
@@ -185,7 +187,8 @@ function addUserAdmin(req, res, next) {
         })
         .catch(function (err) {
             res.status(500).send('Ha sucedido un error. Vuelva a intentar.');
-            return next(err);
+            console.log(err)
+            //return next(err);
         })
 }
 
