@@ -8,4 +8,4 @@ router.get('/usuarios', db.getUsersUsuarios);
 router.get('/administradores', db.getUsersAdmn);
 router.delete('/delete/:id', db.deleteUserAdmin);
 
-module.exports = router;
+module.exports = router; 
